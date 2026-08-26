@@ -1,0 +1,3185 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Plano">
+<link rel="manifest" href="manifest.json">
+<title>Plano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg0: #0a0a0b;
+  --bg1: #111113;
+  --bg2: #1a1a1c;
+  --bg3: #222225;
+  --bg4: #2c2c30;
+  --border: #2a2a2e;
+  --border2: #3a3a40;
+  --text0: #f0f0f0;
+  --text1: #d0d0d4;
+  --text2: #8a8a90;
+  --text3: #5a5a60;
+  --accent: #4a9eff;
+  --green: #3d9970;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --orange: #f97316;
+  --font-main: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg0); }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a40; }
+html { scrollbar-width: thin; scrollbar-color: var(--bg4) var(--bg0); }
+
+body {
+  font-family: var(--font-main);
+  background: var(--bg1);
+  color: var(--text1);
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: var(--bg0);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.25s ease, min-width 0.25s ease;
+  overflow: hidden;
+  z-index: 100;
+}
+.sidebar.collapsed { width: 56px; min-width: 56px; }
+
+.sidebar-logo {
+  padding: 20px 16px 12px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text0);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sidebar-logo span { color: var(--accent); }
+.sidebar.collapsed .sidebar-logo { padding: 20px 0 12px; justify-content: center; }
+.sidebar.collapsed .logo-text { display: none; }
+
+.collapse-btn {
+  background: none; border: none; color: var(--text3); cursor: pointer;
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  border-radius: 4px; transition: background 0.15s;
+}
+.collapse-btn:hover { background: var(--bg3); color: var(--text1); }
+.collapse-btn svg { transition: transform 0.25s; }
+.sidebar.collapsed .collapse-btn svg { transform: rotate(180deg); }
+
+.sidebar-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 12px 8px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 6px; cursor: pointer;
+  color: var(--text2); font-size: 13px; font-weight: 500;
+  white-space: nowrap; transition: all 0.15s; border-left: 3px solid transparent;
+  position: relative;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text1); }
+.nav-item.active {
+  border-left-color: var(--accent);
+  background: rgba(74, 158, 255, 0.08);
+  color: var(--text0);
+}
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.sidebar.collapsed .nav-item { justify-content: center; padding: 10px 0; gap: 0; }
+.sidebar.collapsed .nav-label { display: none; }
+
+/* ===== MAIN CONTENT ===== */
+.main-content {
+  flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0;
+}
+
+/* ===== TOPBAR ===== */
+.topbar {
+  height: 56px; min-height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg1);
+}
+.topbar-left { display: flex; flex-direction: column; }
+.topbar-title { font-size: 16px; font-weight: 600; color: var(--text0); }
+.topbar-subtitle { font-family: var(--font-mono); font-size: 11px; color: var(--text3); }
+.topbar-right { display: flex; gap: 4px; }
+
+.tb-btn {
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+  padding: 6px 12px; border-radius: 6px; font-size: 12px; font-family: var(--font-main);
+  cursor: pointer; transition: all 0.15s;
+}
+.tb-btn:hover { background: var(--bg4); color: var(--text0); border-color: var(--border2); }
+
+/* ===== VIEW CONTAINER ===== */
+.view-container { flex: 1; overflow: hidden; }
+
+/* ===== DAILY VIEW ===== */
+#daily-view { display: none; height: 100%; flex-direction: row; }
+#daily-view.active { display: flex; }
+
+#daily-panels {
+  display: flex; flex-direction: row; gap: 10px; flex: 1; overflow: hidden; padding: 20px;
+}
+
+.day-panel {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px;
+  overflow-y: auto; padding-right: 4px;
+}
+.day-panel.side { opacity: 0.4; transform: scale(0.97); transform-origin: top center; }
+.day-panel.side:hover { opacity: 0.6; }
+.day-panel.center { opacity: 1; transform: scale(1); }
+
+.panel-header { margin-bottom: 4px; }
+.panel-day-name {
+  font-family: var(--font-mono); font-size: 11px; text-transform: uppercase;
+  color: var(--text3); letter-spacing: 1px;
+}
+.panel-date-num { font-weight: 300; color: var(--text3); }
+.day-panel.center .panel-date-num { font-size: 36px; font-weight: 300; color: var(--accent); }
+.day-panel.side .panel-date-num { font-size: 20px; font-weight: 400; color: var(--text3); }
+
+.section-title {
+  font-family: var(--font-mono); font-size: 9px; text-transform: uppercase;
+  color: var(--text3); letter-spacing: 1.2px; margin-bottom: 6px; margin-top: 8px;
+}
+
+/* Shelf */
+.shelf-section {
+  background: var(--bg3); border-left: 2px solid var(--border2);
+  padding: 10px 12px; border-radius: 0 6px 6px 0;
+}
+.shelf-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.shelf-chip {
+  font-family: var(--font-mono); font-size: 10px; padding: 3px 10px;
+  border-radius: 20px; white-space: nowrap;
+}
+.shelf-chip.holiday { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+.shelf-chip.task-high { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+.shelf-chip.task-pinned { background: rgba(74,158,255,0.12); color: var(--accent); border: 1px solid rgba(74,158,255,0.25); }
+.shelf-chip.event-allday { background: rgba(74,158,255,0.12); color: var(--accent); border: 1px solid rgba(74,158,255,0.25); }
+.shelf-chip.event-high { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+.shelf-chip.birthday { background: rgba(168,85,247,0.12); color: #a855f7; border: 1px solid rgba(168,85,247,0.25); cursor: pointer; }
+
+/* Task card */
+.pcard {
+  padding: 14px 16px; background: var(--bg2); border-radius: 6px;
+  display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+  transition: background 0.15s;
+}
+.day-panel.center .pcard { border: 1px solid var(--border2); }
+.day-panel.side .pcard { border: 1px solid var(--border); }
+.pcard:hover { background: var(--bg3); }
+.pcard.overdue { background: rgba(239,68,68,0.06); }
+.pcard-priority {
+  width: 3px; min-height: 20px; border-radius: 2px; flex-shrink: 0; align-self: stretch;
+}
+.pcard-priority.none { background: #555; }
+.pcard-priority.low { background: var(--accent); }
+.pcard-priority.medium { background: var(--orange); }
+.pcard-priority.high { background: var(--red); }
+
+.pcard-checkbox {
+  width: 16px; height: 16px; border-radius: 3px; border: 1.5px solid var(--text3);
+  flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; margin-top: 1px;
+}
+.pcard-checkbox.checked { background: var(--green); border-color: var(--green); }
+.pcard-checkbox.checked::after {
+  content: '✓'; color: white; font-size: 10px; font-weight: 700;
+}
+.pcard-body { flex: 1; min-width: 0; }
+.pcard-title { font-size: 13px; color: var(--text1); }
+.day-panel.side .pcard-title { font-size: 12px; color: var(--text2); }
+.pcard-title.done { text-decoration: line-through; opacity: 0.5; }
+.pcard-time { font-family: var(--font-mono); font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+.task-list { display: flex; flex-direction: column; gap: 2px; }
+
+
+/* ===== DRAG & DROP ===== */
+.pcard[draggable="true"] { cursor: grab; }
+.pcard[draggable="true"]:active { cursor: grabbing; }
+.pcard.dragging { opacity: 0.4; }
+.task-list.drag-over { background: rgba(74,158,255,0.06); border-radius: 6px; min-height: 40px; outline: 2px dashed var(--accent); outline-offset: 2px; }
+.monthly-cell.drag-over { background: rgba(74,158,255,0.1) !important; outline: 2px dashed var(--accent); outline-offset: -2px; }
+.weekly-day-col.drag-over { background: rgba(74,158,255,0.06); }
+
+/* Context menu */
+.ctx-menu {
+  position: fixed; z-index: 9999;
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 4px; min-width: 160px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  animation: fadeIn 0.1s ease;
+}
+.ctx-menu-item {
+  padding: 8px 14px; font-size: 13px; color: var(--text1);
+  border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+}
+.ctx-menu-item:hover { background: var(--bg3); }
+.ctx-menu-item.danger { color: var(--red); }
+@keyframes fadeIn { from { opacity:0; transform: scale(0.95); } to { opacity:1; transform: scale(1); } }
+
+/* Drag handle */
+.pcard-drag-handle {
+  width: 14px; color: var(--text3); cursor: grab; flex-shrink: 0;
+  display: flex; align-items: center; font-size: 14px; opacity: 0;
+  transition: opacity 0.15s;
+}
+.pcard:hover .pcard-drag-handle { opacity: 1; }
+
+.quick-add-input {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text1); padding: 10px 14px; border-radius: 6px;
+  font-family: var(--font-main); font-size: 12px; outline: none;
+  transition: border-color 0.15s; margin-top: 4px;
+}
+.quick-add-input::placeholder { color: var(--text3); }
+.quick-add-input:focus { border-color: var(--accent); }
+
+/* Notes */
+.notes-textarea {
+  width: 100%; min-height: 100px; background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text1); padding: 10px 14px; border-radius: 6px;
+  font-family: var(--font-main); font-size: 12px; resize: vertical; outline: none;
+  transition: border-color 0.15s;
+}
+.notes-textarea:focus { border-color: var(--accent); }
+.notes-preview {
+  background: var(--bg3); border: 1px solid var(--border); padding: 10px 14px;
+  border-radius: 6px; font-size: 12px; color: var(--text2); cursor: pointer;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ===== DAILY RIGHT SIDEBAR ===== */
+.mobile-collapse-section { display: block; }
+@media (min-width: 769px) {
+  .mobile-collapse-section { display: contents; }
+  .mobile-collapse-header { display: none; }
+  .mobile-collapse-body.collapsed-mobile { display: block !important; }
+  .mobile-collapse-body { padding: 0; }
+}
+
+.daily-rsidebar {
+  width: 320px; min-width: 320px; border-left: 1px solid var(--border);
+  background: var(--bg0); padding: 20px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 20px;
+}
+
+/* Mini Calendar */
+.mini-cal { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.mini-cal-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+.mini-cal-title { font-size: 13px; font-weight: 600; color: var(--text0); }
+.mini-cal-btn {
+  background: none; border: none; color: var(--text3); cursor: pointer;
+  width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+  border-radius: 4px;
+}
+.mini-cal-btn:hover { background: var(--bg4); color: var(--text1); }
+.mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; text-align: center; }
+.mini-cal-day-header { font-family: var(--font-mono); font-size: 9px; color: var(--text3); padding: 4px 0; text-transform: uppercase; }
+.mini-cal-day {
+  font-size: 11px; padding: 5px 0; border-radius: 4px; cursor: pointer;
+  color: var(--text2); transition: all 0.1s;
+}
+.mini-cal-day:hover { background: var(--bg4); color: var(--text0); }
+.mini-cal-day.other-month { color: var(--text3); opacity: 0.4; }
+.mini-cal-day.today { background: var(--accent); color: white; font-weight: 600; }
+.mini-cal-day.selected { outline: 2px solid var(--accent); outline-offset: -2px; }
+.mini-cal-day.has-tasks::after {
+  content: ''; display: block; width: 3px; height: 3px;
+  background: var(--accent); border-radius: 50%; margin: 1px auto 0;
+}
+.mini-cal-day.holiday-day { color: var(--amber); }
+
+/* Upcoming */
+.upcoming-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.upcoming-card-title { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; color: var(--text3); letter-spacing: 1.2px; margin-bottom: 10px; }
+.upcoming-day { margin-bottom: 10px; }
+.upcoming-day-header { font-size: 11px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+.upcoming-task {
+  font-size: 11px; color: var(--text2); padding: 3px 0 3px 10px;
+  border-left: 2px solid var(--border2); margin-bottom: 2px;
+}
+
+/* Stats */
+.stats-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.stats-card-title { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; color: var(--text3); letter-spacing: 1.2px; margin-bottom: 10px; }
+.stats-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; }
+.stats-label { color: var(--text2); }
+.stats-value { color: var(--text0); font-weight: 600; font-family: var(--font-mono); }
+
+/* ===== WEEKLY VIEW ===== */
+#weekly-view { display: none; height: 100%; flex-direction: column; }
+#weekly-view.active { display: flex; }
+
+.weekly-header {
+  display: flex; border-bottom: 1px solid var(--border); min-height: fit-content;
+}
+.weekly-corner { width: 60px; min-width: 60px; border-right: 1px solid var(--border); }
+.weekly-day-col-header {
+  flex: 1; min-width: 0; border-right: 1px solid var(--border); padding: 8px 6px;
+  text-align: center;
+}
+.weekly-day-col-header:last-child { border-right: none; }
+.weekly-day-name { font-family: var(--font-mono); font-size: 10px; color: var(--text3); text-transform: uppercase; }
+.weekly-day-num { font-size: 18px; font-weight: 500; color: var(--text1); }
+.weekly-day-col-header.today .weekly-day-num { color: var(--accent); font-weight: 600; }
+.weekly-day-col-header.holiday .weekly-day-name { color: var(--amber); }
+
+.weekly-shelf { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; justify-content: center; }
+.weekly-shelf .shelf-chip { font-size: 8px; padding: 2px 6px; }
+
+.weekly-grid-wrapper { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; }
+.weekly-grid { display: flex; position: relative; min-height: fit-content; }
+.weekly-time-col {
+  width: 60px; min-width: 60px;
+}
+.weekly-time-slot {
+  height: 56px; padding: 4px 8px 0 0; text-align: right;
+  font-family: var(--font-mono); font-size: 10px; color: var(--text3);
+}
+.weekly-day-col {
+  flex: 1; min-width: 0; border-left: 1px solid var(--border); position: relative;
+}
+.weekly-hour-cell {
+  height: 56px; border-bottom: 1px solid var(--border); cursor: pointer;
+  transition: background 0.1s;
+}
+.weekly-hour-cell:hover { background: var(--bg3); }
+
+.weekly-event {
+  position: absolute; left: 2px; right: 2px;
+  border-radius: 4px; padding: 3px 6px; font-size: 10px;
+  color: white; cursor: pointer; overflow: hidden;
+  z-index: 2; border-left: 3px solid;
+}
+
+.weekly-now-line {
+  position: absolute; left: 60px; right: 0; height: 2px;
+  background: var(--red); z-index: 10; pointer-events: none;
+}
+.weekly-now-dot {
+  position: absolute; left: 56px; width: 10px; height: 10px;
+  background: var(--red); border-radius: 50%; z-index: 10;
+  pointer-events: none; transform: translateY(-4px);
+}
+
+/* ===== MONTHLY VIEW ===== */
+#monthly-view { display: none; height: 100%; flex-direction: column; }
+#monthly-view.active { display: flex; }
+
+.monthly-grid-header {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+.monthly-day-header {
+  padding: 8px; text-align: center; font-family: var(--font-mono);
+  font-size: 10px; color: var(--text3); text-transform: uppercase;
+}
+.monthly-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  flex: 1; overflow-y: auto;
+}
+.monthly-cell {
+  border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  padding: 6px 8px; min-height: 90px; cursor: pointer; transition: background 0.1s;
+}
+.monthly-cell:nth-child(7n) { border-right: none; }
+.monthly-cell:hover { background: var(--bg3); }
+.monthly-cell.other-month { opacity: 0.3; }
+.monthly-cell.today { background: rgba(74,158,255,0.06); }
+.monthly-cell-num { font-size: 12px; font-weight: 500; color: var(--text1); margin-bottom: 4px; }
+.monthly-cell.today .monthly-cell-num { color: var(--accent); font-weight: 700; }
+.monthly-cell-holiday { font-size: 9px; color: var(--amber); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.monthly-task-preview {
+  font-size: 11px; color: var(--text2); padding: 1px 0 1px 6px;
+  border-left: 2px solid #555; margin-bottom: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ===== SETTINGS VIEW ===== */
+#settings-view { display: none; height: 100%; }
+#settings-view.active { display: flex; flex-direction: column; }
+#birthdays-view { display: none; height: 100%; }
+#birthdays-view.active { display: flex; flex-direction: column; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  display: none; align-items: center; justify-content: center; z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--bg2); border: 1px solid var(--border2); border-radius: 10px;
+  width: 440px; max-width: 95%; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.modal-header {
+  padding: 20px 24px 0; font-size: 16px; font-weight: 600; color: var(--text0);
+}
+.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.modal-footer {
+  padding: 14px 24px 20px; display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--border);
+}
+
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+.form-input, .form-select, .form-textarea {
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text1);
+  padding: 8px 12px; border-radius: 6px; font-family: var(--font-main); font-size: 13px;
+  outline: none; transition: border-color 0.15s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+.form-textarea { resize: vertical; min-height: 50px; }
+.form-select { cursor: pointer; }
+.form-select option { background: var(--bg3); color: var(--text1); }
+
+.form-row { display: flex; gap: 10px; }
+.form-row .form-group { flex: 1; }
+
+.form-check {
+  display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--text1);
+}
+.form-check input[type="checkbox"] {
+  width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer;
+}
+
+.btn {
+  padding: 8px 16px; border-radius: 6px; font-family: var(--font-main);
+  font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s;
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-secondary { background: var(--bg3); color: var(--text1); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--bg4); }
+.btn-danger { background: rgba(239,68,68,0.15); color: var(--red); }
+.btn-danger:hover { background: rgba(239,68,68,0.25); }
+
+.btn-group { display: flex; gap: 8px; }
+
+/* Color picker dots */
+.color-dots { display: flex; gap: 8px; }
+.color-dot {
+  width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.15s;
+}
+.color-dot:hover { transform: scale(1.15); }
+.color-dot.selected { border-color: white; box-shadow: 0 0 0 2px var(--bg0); }
+
+/* Day checkboxes row */
+.day-checks { display: flex; gap: 6px; flex-wrap: wrap; }
+.day-check {
+  display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text2); cursor: pointer;
+}
+.day-check input { accent-color: var(--accent); cursor: pointer; }
+
+/* Settings panel */
+.settings-panel {
+  max-width: 520px; margin: 0 auto; padding: 30px;
+  display: flex; flex-direction: column; gap: 24px; overflow-y: auto; flex: 1; width: 100%;
+}
+.settings-section {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px;
+}
+.settings-section-title {
+  font-size: 14px; font-weight: 600; color: var(--text0); margin-bottom: 14px;
+}
+
+.accent-dots { display: flex; gap: 10px; }
+.accent-dot {
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.15s;
+}
+.accent-dot:hover { transform: scale(1.15); }
+.accent-dot.selected { border-color: white; box-shadow: 0 0 0 3px rgba(255,255,255,0.15); }
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  body { flex-direction: column; }
+
+  /* Alt navigasyon barı */
+  .sidebar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    width: 100% !important; min-width: 100% !important;
+    height: 60px; flex-direction: row;
+    border-right: none; border-top: 1px solid var(--border);
+    z-index: 200;
+  }
+  .sidebar.collapsed { width: 100% !important; min-width: 100% !important; height: 60px; }
+  .sidebar-logo, .collapse-btn { display: none !important; }
+  .sidebar-nav { flex-direction: row; padding: 0 8px; gap: 0; justify-content: space-around; align-items: center; }
+  .nav-item {
+    flex-direction: column; gap: 3px; padding: 6px 12px;
+    border-left: none !important; font-size: 9px;
+    justify-content: center; align-items: center;
+    min-width: 44px; min-height: 44px; border-radius: 8px;
+  }
+  .nav-item svg { width: 20px; height: 20px; }
+  .nav-item.active { border-left: none !important; background: rgba(74,158,255,0.1); color: var(--accent); }
+  .nav-item.active svg { stroke: var(--accent); }
+  .nav-label { display: block !important; }
+
+  /* Main content */
+  .main-content { padding-bottom: 60px; overflow-y: auto; }
+  .view-container { height: auto; overflow: visible; }
+
+  /* Daily view - tek sütun */
+  #daily-view { flex-direction: column; overflow: visible; }
+  #daily-panels { flex-direction: column; padding: 10px 10px 0; gap: 0; }
+  .day-panel.side { display: none; }
+  .day-panel.center { width: 100%; padding: 0; }
+
+  /* Panel başlığı */
+  .panel-header { padding: 4px 0 12px; }
+  .panel-date-num { font-size: 32px !important; }
+
+  /* Görev kartları dokunmatik için büyüsün */
+  .pcard { padding: 10px 12px; min-height: 44px; }
+  .pcard-checkbox { width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0; }
+
+  /* Quick add input */
+  .quick-add-input { height: 44px; font-size: 14px; }
+
+  /* Notes textarea */
+  .notes-textarea { min-height: 80px; font-size: 14px; }
+
+  /* Sağ sidebar — açılır kapanır bölümler olarak aşağı taşı */
+  .mobile-collapse-section { display: block; }
+@media (min-width: 769px) {
+  .mobile-collapse-section { display: contents; }
+  .mobile-collapse-header { display: none; }
+  .mobile-collapse-body.collapsed-mobile { display: block !important; }
+  .mobile-collapse-body { padding: 0; }
+}
+
+.daily-rsidebar {
+    width: 100%; min-width: 100%;
+    border-left: none; border-top: none;
+    flex-direction: column; padding: 0 10px 10px;
+    gap: 0;
+  }
+
+  /* Mini cal, upcoming, stats — açılır kapanır wrapper */
+  .mini-cal, .upcoming-card, .stats-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+
+  /* Her bölüme tıklanabilir başlık ekle */
+  .mini-cal::before,
+  .upcoming-card::before,
+  .stats-card::before {
+    content: attr(data-title);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 14px;
+    font-size: 10px; color: var(--text3);
+    letter-spacing: 1px; text-transform: uppercase;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    border-bottom: 1px solid transparent;
+  }
+
+  /* Haftalık - saat kolonu küçült, scroll */
+  #weekly-view { height: calc(100vh - 120px); display: flex; flex-direction: column; }
+  .weekly-header { flex-shrink: 0; }
+  .weekly-grid-wrapper { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  .weekly-corner { width: 44px; min-width: 44px; }
+  .weekly-time-col { width: 44px; min-width: 44px; }
+  .weekly-time-slot { font-size: 9px; padding: 4px 4px 0 0; }
+  .weekly-day-col { min-width: 0; }
+  .weekly-day-col-header { padding: 6px 2px; }
+  .weekly-day-name { font-size: 9px; }
+  .weekly-day-num { font-size: 14px; }
+  .weekly-shelf { display: none; }
+  .weekly-now-line { left: 44px; }
+  .weekly-now-dot { left: 40px; }
+  .weekly-event { font-size: 9px; padding: 2px 4px; left: 1px; right: 1px; }
+
+  /* Aylık - kompakt ama okunabilir */
+  #monthly-view { height: calc(100vh - 120px); }
+  .monthly-cell { min-height: 60px; padding: 4px 3px; }
+  .monthly-cell-num { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .monthly-day-header { padding: 6px 2px; font-size: 9px; }
+  .monthly-cell-holiday { font-size: 8px; margin-bottom: 2px; }
+  .monthly-task-preview { font-size: 9px; padding: 1px 0 1px 4px; margin-bottom: 1px; border-left-width: 2px; }
+  .monthly-cell.has-tasks-mobile::after {
+    content: ''; display: block; width: 4px; height: 4px;
+    background: var(--accent); border-radius: 50%; margin: 2px auto 0;
+  }
+
+  /* Topbar */
+  .topbar { padding: 10px 12px; }
+  .tb-btn { min-width: 36px; min-height: 36px; font-size: 18px; }
+
+  /* Modal */
+  .modal { max-width: 95vw; max-height: 85vh; overflow-y: auto; margin: 8px; }
+
+  /* Shelf chips daha büyük dokunma alanı */
+  .shelf-chip { padding: 5px 11px; font-size: 11px; }
+
+  /* Section title butonları */
+  .section-title span[onclick] { min-height: 32px; padding: 4px 8px; }
+
+  /* Açılır kapanır bölümler */
+  .mobile-collapse-section {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; margin-bottom: 8px; overflow: hidden;
+  }
+  .mobile-collapse-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; cursor: pointer;
+    font-size: 10px; color: var(--text3);
+    letter-spacing: 1px; text-transform: uppercase; font-family: var(--font-mono);
+  }
+  .mobile-collapse-header:active { background: var(--bg3); }
+  .mobile-chevron { font-size: 14px; color: var(--text3); transition: transform 0.2s; }
+  .mobile-chevron.open { transform: rotate(180deg); }
+  .mobile-collapse-body { padding: 0 14px 12px; }
+  .mobile-collapse-body.collapsed-mobile { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div style="display:flex;align-items:center;gap:8px">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAE1ElEQVR4nL2X34tVVRTHP2vtfc6duTNGRfbzoYSICglqCuqh7DeFWfRwfTDU0ZAi+g8KrreIgqK3KKSwJEHmQmhlUWrWS0GQ0dAvssK0rHwYRvPe8Z4fe/Vw7m2ud+bO6CR+YbHZh33W+u6911p7LWEOVMbM1VdK3pmv2GY3h4Q7MEYMlpAzDCBKQ5QDKPsQPh2M+KLzX6+OXsisX82kuhGp1SQ8+LotshKjZqwJgRt8jJqBBcCmtYiCCOQJJso3orzdmmLzxxtkgqopGzFErNfUDALVqmmtJgHggbdsNY6aj1mSp5C3wIwcQATB2v8LZoVqE8G5GFwMWYs/RHnmvUdkU6/uWQl0Ftzzog0NXMyrGrM6b0FIyUxQAe13lCcdIAQxgnq8G4A84R2X8eiOdTLZS2KaQNWUmoT73rDFLmZHVOKW5J/TMzwLEwPyeBE+a/FNkrLi4/VyqJtEQaB951+NMGCT7PElbk6Ok4oQ9eqc3Wnm40EalYnyFt+a57adP3G04xMKUKmjtZqEMMGmaLC/cTPIFyBmRK0GqRtgqSVsoSahUi9OVTphcv9btioeYGvaIIWZxgG8gsq0858OBEhzMj+Mz5o8sXNUXq2MmRPMpFJnqNHgR3VcmmdY752rwFQKT90JSy+GEIqQO1VYW8fzewnjR2DQM+nhqu1rmPCIWPNNG42HuCz5h0wE30/JBUOweGgB22+j5NE8JYvP4fykyeOIPKfL9poPgUfzFLN5fCwNbT9oj6cqoWs9guYtLARGK2M26IcOMYJyXd4CEdxcBITi6Dvj6aCzXkDzBFPPlVNNblVy7m6n1zC3ijMHg6AeAtyrwIgtxK3/DwSxAALXK8IVFtq5/WzZt4IAxhUKlDH472E5KwzazglDuqCscuZ4oCJMFW59FqlMx3tTMX5TBbOzSEAwKQL+oBrsO1O3H9pJqp90dmiGiQLC1+oi9uRJUcn8XwIq4HSmeNcetSAhoCEDjN3+kqv58vdxvncx12bJzIfoVGBWZLrd++H3YxC7dtrtgggcPgaRI0iE5CkHUs+nftONki7fbJtdzEt5ixxZYPUDvPsDfH4AhkvFdfSiHEGkBC3hQ8bbu9ZIQzETD28kDY5ohMLCU/JwDOeV4dzB2cUpJg7NmhwzeAUz0Uod3bFOJk14yg+gBn1r+PkwnxMCWVRGLfDsB+vkr2UbcVpfKXllzNyHo/J62mR7PExkRrpQEv1gRhaViZLjfHLTOl6ujJn7rEauAPUKgappucxodoLxeGh2EmbFLvtJX+OBLBrEZwm/uBKraoLVv8OgXZR2Opb6SjmaZjyQp4yXhokwMroSVMkXodapDTviuuYnW8YwsngYbzn7ybj/vVXyd9UQ2mX5dPlVk1CtmtbWy6HlW+32LGFztIiHsimwnEwE/XUCjV1R6XYbs/a8kfxXtAaMIA4flfFZi11pk7UfPSZ/VsbM1WS6V5yzNVu+xZ4U4Wlf4qK8BckJLBRRclJRZIUmc4IpqEaIH4CsxQTwwvur5cVe3X0JtLcknat5eItdmDo2EHgE4xoXFY1pyJnOrZ3mVIvvBj8rbAs5r+0clT/AiqfuVJrTbnS31mv32sDkYZYF466QMYJxuVG050BThIPq2CeOPSXPZ/WVcrxXx2z4FyFQmF0unPgXAAAAAElFTkSuQmCC" width="28" height="28" style="border-radius:6px;flex-shrink:0" alt="Plano">
+      <span class="logo-text">Plano<span>.</span></span>
+    </div>
+    <button class="collapse-btn" id="collapseBtn" title="Daralt/Genişlet">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 3L5 8L10 13"/></svg>
+    </button>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" data-view="daily" title="Günlük">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span class="nav-label">Günlük</span>
+    </div>
+    <div class="nav-item" data-view="weekly" title="Haftalık">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="4" x2="9" y2="22"/><line x1="15" y1="4" x2="15" y2="22"/><line x1="3" y1="16" x2="21" y2="16"/></svg>
+      <span class="nav-label">Haftalık</span>
+    </div>
+    <div class="nav-item" data-view="monthly" title="Aylık">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><rect x="7" y="13" width="3" height="3" rx="0.5"/><rect x="14" y="13" width="3" height="3" rx="0.5"/><rect x="7" y="17" width="3" height="3" rx="0.5"/></svg>
+      <span class="nav-label">Aylık</span>
+    </div>
+    <div class="nav-item" data-view="birthdays" title="Doğum Günleri">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M12 3v2"/><path d="M8 7h8"/></svg>
+      <span class="nav-label">Doğ. Gün.</span>
+    </div>
+    <div class="nav-item" data-view="settings" title="Ayarlar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span class="nav-label">Ayarlar</span>
+    </div>
+  </nav>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title" id="topbarTitle">Günlük</div>
+      <div class="topbar-subtitle" id="topbarSubtitle"></div>
+    </div>
+    <div class="topbar-right" id="topbarNav">
+      <button class="tb-btn" id="btnPrev">◀</button>
+      <button class="tb-btn" id="btnToday">Bugün</button>
+      <button class="tb-btn" id="btnNext">▶</button>
+    </div>
+  </div>
+
+  <!-- VIEW CONTAINER -->
+  <div class="view-container">
+    <!-- DAILY VIEW -->
+    <div id="daily-view" class="active">
+      <div id="daily-panels"></div>
+      <div class="daily-rsidebar" id="dailyRSidebar">
+        <div class="mobile-collapse-section">
+          <div class="mobile-collapse-header" onclick="toggleMobileSection(this)">
+            <span>Mini Takvim</span>
+            <span class="mobile-chevron">▾</span>
+          </div>
+          <div class="mobile-collapse-body collapsed-mobile">
+            <div class="mini-cal" id="miniCal"></div>
+          </div>
+        </div>
+        <div class="mobile-collapse-section">
+          <div class="mobile-collapse-header" onclick="toggleMobileSection(this)">
+            <span>Yaklaşan 7 Gün</span>
+            <span class="mobile-chevron">▾</span>
+          </div>
+          <div class="mobile-collapse-body collapsed-mobile">
+            <div class="upcoming-card" id="upcomingCard"></div>
+          </div>
+        </div>
+        <div class="mobile-collapse-section">
+          <div class="mobile-collapse-header" onclick="toggleMobileSection(this)">
+            <span>Bu Hafta</span>
+            <span class="mobile-chevron">▾</span>
+          </div>
+          <div class="mobile-collapse-body collapsed-mobile">
+            <div class="stats-card" id="statsCard"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEKLY VIEW -->
+    <div id="weekly-view">
+      <div class="weekly-header" id="weeklyHeader"></div>
+      <div class="weekly-grid-wrapper" id="weeklyGridWrapper">
+        <div class="weekly-grid" id="weeklyGrid"></div>
+      </div>
+    </div>
+
+    <!-- MONTHLY VIEW -->
+    <div id="monthly-view">
+      <div class="monthly-grid-header" id="monthlyHeader"></div>
+      <div class="monthly-grid" id="monthlyGrid"></div>
+    </div>
+
+    <!-- SETTINGS VIEW -->
+    <div id="settings-view">
+      <div class="settings-panel" id="settingsPanel"></div>
+    </div>
+    <div id="birthdays-view">
+      <div class="settings-panel" id="birthdaysPanel"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BIRTHDAY MODAL -->
+<div class="modal-overlay" id="birthdayModalOverlay">
+  <div class="modal">
+    <div class="modal-header" id="birthdayModalTitle">Doğum Günü Ekle</div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">İsim</label>
+        <input class="form-input" id="birthdayName" type="text" placeholder="Kişinin adı...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Ay</label>
+          <select class="form-select" id="birthdayMonth">
+            <option value="01">Ocak</option><option value="02">Şubat</option>
+            <option value="03">Mart</option><option value="04">Nisan</option>
+            <option value="05">Mayıs</option><option value="06">Haziran</option>
+            <option value="07">Temmuz</option><option value="08">Ağustos</option>
+            <option value="09">Eylül</option><option value="10">Ekim</option>
+            <option value="11">Kasım</option><option value="12">Aralık</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gün</label>
+          <input class="form-input" id="birthdayDay" type="number" min="1" max="31" placeholder="1-31">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Doğum Yılı <span style="color:var(--text3);font-weight:400">(isteğe bağlı — yaş hesaplaması için)</span></label>
+        <input class="form-input" id="birthdayYear" type="number" min="1900" max="2025" placeholder="örn. 1995">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hatırlatıcı</label>
+        <select class="form-select" id="birthdayReminder">
+          <option value="none">Yok</option>
+          <option value="day_9am">O gün saat 09:00</option>
+          <option value="1day_9am">1 gün önce saat 09:00</option>
+          <option value="1week_9am">1 hafta önce saat 09:00</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="birthdayDeleteBtn" style="display:none">Sil</button>
+      <div class="btn-group">
+        <button class="btn btn-secondary" id="birthdayCancelBtn">İptal</button>
+        <button class="btn btn-primary" id="birthdaySaveBtn">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="taskModalOverlay">
+  <div class="modal">
+    <div class="modal-header" id="taskModalTitle">Yeni Görev</div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Başlık</label>
+        <input class="form-input" id="taskTitle" type="text" placeholder="Görev başlığı..." required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tarih</label>
+          <input class="form-input" id="taskDate" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Saat</label>
+          <input class="form-input" id="taskTime" type="time">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Öncelik</label>
+          <select class="form-select" id="taskPriority">
+            <option value="none">Yok</option>
+            <option value="low">Düşük</option>
+            <option value="medium">Orta</option>
+            <option value="high">Yüksek</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tekrar</label>
+          <select class="form-select" id="taskRepeat">
+            <option value="none">Yok</option>
+            <option value="daily">Her Gün</option>
+            <option value="weekly">Her Hafta</option>
+            <option value="monthly">Her Ay</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" id="taskWeeklyDays" style="display:none">
+        <label class="form-label">Günler</label>
+        <div class="day-checks">
+          <label class="day-check"><input type="checkbox" value="1"> Pzt</label>
+          <label class="day-check"><input type="checkbox" value="2"> Sal</label>
+          <label class="day-check"><input type="checkbox" value="3"> Çar</label>
+          <label class="day-check"><input type="checkbox" value="4"> Per</label>
+          <label class="day-check"><input type="checkbox" value="5"> Cum</label>
+          <label class="day-check"><input type="checkbox" value="6"> Cmt</label>
+          <label class="day-check"><input type="checkbox" value="0"> Paz</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notlar</label>
+        <textarea class="form-textarea" id="taskNotes" rows="2" placeholder="Notlar..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hatırlatıcı</label>
+        <select class="form-select" id="taskReminder">
+          <option value="none">Yok</option>
+          <option value="at_time">Tam saatinde</option>
+          <option value="10min">10 dakika önce</option>
+          <option value="30min">30 dakika önce</option>
+          <option value="1hour">1 saat önce</option>
+          <option value="day_9am">O gün saat 09:00</option>
+          <option value="1day_9am">1 gün önce saat 09:00</option>
+          <option value="1week_9am">1 hafta önce saat 09:00</option>
+        </select>
+      </div>
+      <label class="form-check">
+        <input type="checkbox" id="taskPinned">
+        Günün Rafına Ekle
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="taskDeleteBtn" style="display:none">Sil</button>
+      <div class="btn-group">
+        <button class="btn btn-secondary" id="taskCancelBtn">İptal</button>
+        <button class="btn btn-primary" id="taskSaveBtn">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT MODAL -->
+<div class="modal-overlay" id="eventModalOverlay">
+  <div class="modal">
+    <div class="modal-header" id="eventModalTitle">Yeni Etkinlik</div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Başlık</label>
+        <input class="form-input" id="eventTitle" type="text" placeholder="Etkinlik başlığı...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tarih</label>
+        <input class="form-input" id="eventDate" type="date">
+      </div>
+      <label class="form-check">
+        <input type="checkbox" id="eventAllDay">
+        Tüm gün
+      </label>
+      <div class="form-row" id="eventTimeRow">
+        <div class="form-group">
+          <label class="form-label">Başlangıç</label>
+          <input class="form-input" id="eventStart" type="time">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bitiş</label>
+          <input class="form-input" id="eventEnd" type="time">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Öncelik</label>
+        <select class="form-select" id="eventPriority">
+          <option value="none">Yok</option>
+          <option value="low">Düşük</option>
+          <option value="medium">Orta</option>
+          <option value="high">Yüksek</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Renk</label>
+        <div class="color-dots" id="eventColorDots">
+          <div class="color-dot selected" data-color="#4a9eff" style="background:#4a9eff"></div>
+          <div class="color-dot" data-color="#3d9970" style="background:#3d9970"></div>
+          <div class="color-dot" data-color="#a855f7" style="background:#a855f7"></div>
+          <div class="color-dot" data-color="#f97316" style="background:#f97316"></div>
+          <div class="color-dot" data-color="#ef4444" style="background:#ef4444"></div>
+          <div class="color-dot" data-color="#eab308" style="background:#eab308"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hatırlatıcı</label>
+        <select class="form-select" id="eventReminder">
+          <option value="none">Yok</option>
+          <option value="at_time">Tam saatinde</option>
+          <option value="5min">5 dakika önce</option>
+          <option value="10min">10 dakika önce</option>
+          <option value="30min">30 dakika önce</option>
+          <option value="1hour">1 saat önce</option>
+          <option value="1day_9am">1 gün önce saat 09:00</option>
+          <option value="1week_9am">1 hafta önce saat 09:00</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notlar</label>
+        <textarea class="form-textarea" id="eventNotes" rows="2" placeholder="Notlar..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="eventDeleteBtn" style="display:none">Sil</button>
+      <div class="btn-group">
+        <button class="btn btn-secondary" id="eventCancelBtn">İptal</button>
+        <button class="btn btn-primary" id="eventSaveBtn">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========== HOLIDAY ENGINE ========== */
+const ISLAMIC_HOLIDAYS = {
+  '2024-04-10':'Ramazan Bayramı (1. Gün)','2024-04-11':'Ramazan Bayramı (2. Gün)','2024-04-12':'Ramazan Bayramı (3. Gün)',
+  '2024-06-16':'Kurban Bayramı (1. Gün)','2024-06-17':'Kurban Bayramı (2. Gün)','2024-06-18':'Kurban Bayramı (3. Gün)','2024-06-19':'Kurban Bayramı (4. Gün)',
+  '2025-03-30':'Ramazan Bayramı (1. Gün)','2025-03-31':'Ramazan Bayramı (2. Gün)','2025-04-01':'Ramazan Bayramı (3. Gün)',
+  '2025-06-06':'Kurban Bayramı (1. Gün)','2025-06-07':'Kurban Bayramı (2. Gün)','2025-06-08':'Kurban Bayramı (3. Gün)','2025-06-09':'Kurban Bayramı (4. Gün)',
+  '2026-03-20':'Ramazan Bayramı (1. Gün)','2026-03-21':'Ramazan Bayramı (2. Gün)','2026-03-22':'Ramazan Bayramı (3. Gün)',
+  '2026-05-27':'Kurban Bayramı (1. Gün)','2026-05-28':'Kurban Bayramı (2. Gün)','2026-05-29':'Kurban Bayramı (3. Gün)','2026-05-30':'Kurban Bayramı (4. Gün)',
+  '2027-03-09':'Ramazan Bayramı (1. Gün)','2027-03-10':'Ramazan Bayramı (2. Gün)','2027-03-11':'Ramazan Bayramı (3. Gün)',
+  '2027-05-16':'Kurban Bayramı (1. Gün)','2027-05-17':'Kurban Bayramı (2. Gün)','2027-05-18':'Kurban Bayramı (3. Gün)','2027-05-19':'Kurban Bayramı (4. Gün)',
+  '2028-02-26':'Ramazan Bayramı (1. Gün)','2028-02-27':'Ramazan Bayramı (2. Gün)','2028-02-28':'Ramazan Bayramı (3. Gün)',
+  '2028-05-05':'Kurban Bayramı (1. Gün)','2028-05-06':'Kurban Bayramı (2. Gün)','2028-05-07':'Kurban Bayramı (3. Gün)','2028-05-08':'Kurban Bayramı (4. Gün)',
+  '2029-02-14':'Ramazan Bayramı (1. Gün)','2029-02-15':'Ramazan Bayramı (2. Gün)','2029-02-16':'Ramazan Bayramı (3. Gün)',
+  '2029-04-24':'Kurban Bayramı (1. Gün)','2029-04-25':'Kurban Bayramı (2. Gün)','2029-04-26':'Kurban Bayramı (3. Gün)','2029-04-27':'Kurban Bayramı (4. Gün)',
+  '2030-02-04':'Ramazan Bayramı (1. Gün)','2030-02-05':'Ramazan Bayramı (2. Gün)','2030-02-06':'Ramazan Bayramı (3. Gün)',
+  '2030-04-13':'Kurban Bayramı (1. Gün)','2030-04-14':'Kurban Bayramı (2. Gün)','2030-04-15':'Kurban Bayramı (3. Gün)','2030-04-16':'Kurban Bayramı (4. Gün)',
+  '2031-01-24':'Ramazan Bayramı (1. Gün)','2031-01-25':'Ramazan Bayramı (2. Gün)','2031-01-26':'Ramazan Bayramı (3. Gün)',
+  '2031-04-02':'Kurban Bayramı (1. Gün)','2031-04-03':'Kurban Bayramı (2. Gün)','2031-04-04':'Kurban Bayramı (3. Gün)','2031-04-05':'Kurban Bayramı (4. Gün)',
+  '2032-01-14':'Ramazan Bayramı (1. Gün)','2032-01-15':'Ramazan Bayramı (2. Gün)','2032-01-16':'Ramazan Bayramı (3. Gün)',
+  '2032-03-22':'Kurban Bayramı (1. Gün)','2032-03-23':'Kurban Bayramı (2. Gün)','2032-03-24':'Kurban Bayramı (3. Gün)','2032-03-25':'Kurban Bayramı (4. Gün)',
+  '2033-01-02':'Ramazan Bayramı (1. Gün)','2033-01-03':'Ramazan Bayramı (2. Gün)','2033-01-04':'Ramazan Bayramı (3. Gün)',
+  '2033-12-23':'Ramazan Bayramı (1. Gün)','2033-12-24':'Ramazan Bayramı (2. Gün)','2033-12-25':'Ramazan Bayramı (3. Gün)',
+  '2033-03-11':'Kurban Bayramı (1. Gün)','2033-03-12':'Kurban Bayramı (2. Gün)','2033-03-13':'Kurban Bayramı (3. Gün)','2033-03-14':'Kurban Bayramı (4. Gün)',
+  '2034-12-12':'Ramazan Bayramı (1. Gün)','2034-12-13':'Ramazan Bayramı (2. Gün)','2034-12-14':'Ramazan Bayramı (3. Gün)',
+  '2034-03-01':'Kurban Bayramı (1. Gün)','2034-03-02':'Kurban Bayramı (2. Gün)','2034-03-03':'Kurban Bayramı (3. Gün)','2034-03-04':'Kurban Bayramı (4. Gün)',
+  '2035-12-01':'Ramazan Bayramı (1. Gün)','2035-12-02':'Ramazan Bayramı (2. Gün)','2035-12-03':'Ramazan Bayramı (3. Gün)',
+  '2035-02-18':'Kurban Bayramı (1. Gün)','2035-02-19':'Kurban Bayramı (2. Gün)','2035-02-20':'Kurban Bayramı (3. Gün)','2035-02-21':'Kurban Bayramı (4. Gün)'
+};
+
+const PUBLIC_HOLIDAYS = {
+  '01-01':'Yılbaşı',
+  '04-23':'Ulusal Egemenlik ve Çocuk Bayramı',
+  '05-01':'Emek ve Dayanışma Günü',
+  '05-19':"Atatürk'ü Anma, Gençlik ve Spor Bayramı",
+  '07-15':'Demokrasi ve Millî Birlik Günü',
+  '08-30':'Zafer Bayramı',
+  '10-29':'Cumhuriyet Bayramı'
+};
+
+function getHoliday(dateStr) {
+  if (ISLAMIC_HOLIDAYS[dateStr]) return ISLAMIC_HOLIDAYS[dateStr];
+  const md = dateStr.slice(5);
+  if (PUBLIC_HOLIDAYS[md]) return PUBLIC_HOLIDAYS[md];
+  return null;
+}
+
+/* ========== UTILITY FUNCTIONS ========== */
+function formatDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function getStartOfWeek(d) {
+  const dt = new Date(d);
+  let day = dt.getDay();
+  if (day === 0) day = 7;
+  dt.setDate(dt.getDate() - (day - 1));
+  dt.setHours(0, 0, 0, 0);
+  return dt;
+}
+
+function addDays(d, n) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+function addMonths(d, m) {
+  const r = new Date(d);
+  const targetMonth = r.getMonth() + m;
+  r.setMonth(targetMonth);
+  if (r.getMonth() !== ((targetMonth % 12) + 12) % 12) {
+    r.setDate(0);
+  }
+  return r;
+}
+
+function timeToMins(t) {
+  if (!t) return 0;
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function debounce(fn, ms) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), ms);
+  };
+}
+
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+/* ========== CLOUD SYNC ========== */
+const API_URL = 'https://plano-api.dorukfaydali.workers.dev';
+const API_TOKEN = 'PlanoSuperSecretToken123';
+
+// Sync indicator
+function showSyncStatus(status) {
+  let el = document.getElementById('sync-status');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'sync-status';
+    el.style.cssText = 'position:fixed;bottom:16px;right:16px;font-size:10px;font-family:var(--font-mono);padding:4px 10px;border-radius:4px;z-index:9999;transition:opacity 0.3s;pointer-events:none';
+    document.body.appendChild(el);
+  }
+  if (status === 'syncing') {
+    el.textContent = '⟳ senkronize ediliyor';
+    el.style.cssText += ';background:rgba(74,158,255,0.15);color:#4a9eff;opacity:1';
+  } else if (status === 'ok') {
+    el.textContent = '✓ senkronize edildi';
+    el.style.cssText += ';background:rgba(61,153,112,0.15);color:#3d9970;opacity:1';
+    setTimeout(() => { el.style.opacity = '0'; }, 2000);
+  } else if (status === 'offline') {
+    el.textContent = '⚠ çevrimdışı';
+    el.style.cssText += ';background:rgba(245,158,11,0.15);color:#f59e0b;opacity:1';
+    setTimeout(() => { el.style.opacity = '0'; }, 3000);
+  }
+}
+
+async function apiGet(key) {
+  try {
+    const res = await fetch(`${API_URL}/data?key=${key}`, {
+      headers: { 'Authorization': `Bearer ${API_TOKEN}` }
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.value ? JSON.parse(json.value) : null;
+  } catch { return null; }
+}
+
+async function apiSet(key, value) {
+  try {
+    showSyncStatus('syncing');
+    const res = await fetch(`${API_URL}/data`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${API_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value: JSON.stringify(value) })
+    });
+    if (res.ok) showSyncStatus('ok'); else showSyncStatus('offline');
+  } catch { showSyncStatus('offline'); }
+}
+
+// Debounce helper - sık değişikliklerde API'yi yormamak için
+function debounce(fn, delay) {
+  let timer;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
+}
+
+const debouncedSyncTasks      = debounce((v) => apiSet('plano_tasks', v), 1000);
+const debouncedSyncNotes      = debounce((v) => apiSet('plano_notes', v), 1500);
+const debouncedSyncEvents     = debounce((v) => apiSet('plano_events', v), 1000);
+const debouncedSyncSettings   = debounce((v) => apiSet('plano_settings', v), 1000);
+const debouncedSyncBirthdays  = debounce((v) => apiSet('plano_birthdays', v), 1000);
+
+/* ========== DATA HELPERS ========== */
+function getTasks() {
+  try { return JSON.parse(localStorage.getItem('plano_tasks')) || []; } catch { return []; }
+}
+function saveTasks(tasks) {
+  localStorage.setItem('plano_tasks', JSON.stringify(tasks));
+  debouncedSyncTasks(tasks);
+}
+
+function getNotes() {
+  try { return JSON.parse(localStorage.getItem('plano_notes')) || {}; } catch { return {}; }
+}
+function saveNotes(notes) {
+  localStorage.setItem('plano_notes', JSON.stringify(notes));
+  debouncedSyncNotes(notes);
+}
+
+function getEvents() {
+  try { return JSON.parse(localStorage.getItem('plano_events')) || {}; } catch { return {}; }
+}
+function saveEvents(events) {
+  localStorage.setItem('plano_events', JSON.stringify(events));
+  debouncedSyncEvents(events);
+}
+
+function getSettings() {
+  try {
+    return Object.assign({ accentColor: '#4a9eff', defaultPriority: 'none' },
+      JSON.parse(localStorage.getItem('plano_settings')) || {});
+  } catch { return { accentColor: '#4a9eff', defaultPriority: 'none' }; }
+}
+function saveSettings(s) {
+  localStorage.setItem('plano_settings', JSON.stringify(s));
+  debouncedSyncSettings(s);
+}
+
+function getBirthdays() {
+  try { return JSON.parse(localStorage.getItem('plano_birthdays')) || []; } catch { return []; }
+}
+function saveBirthdays(bdays) {
+  localStorage.setItem('plano_birthdays', JSON.stringify(bdays));
+  debouncedSyncBirthdays(bdays);
+}
+// Doğum günleri o gün ve her yıl tekrar eder
+function getBirthdaysForDate(dateStr) {
+  const bdays = getBirthdays();
+  const md = dateStr.slice(5); // "MM-DD"
+  return bdays.filter(b => b.monthDay === md);
+}
+
+function getSidebarState() { return localStorage.getItem('plano_sidebar') || 'expanded'; }
+function saveSidebarState(s) { localStorage.setItem('plano_sidebar', s); }
+
+// Uygulama açılırken buluttan veri çek, localStorage'ı güncelle
+let _blockCloudSync = false;
+async function syncFromCloud() {
+  if (_blockCloudSync) return;
+  const keys = ['plano_tasks', 'plano_notes', 'plano_events', 'plano_settings', 'plano_birthdays'];
+  let anyUpdate = false;
+  for (const key of keys) {
+    const cloudVal = await apiGet(key);
+    if (_blockCloudSync) return; // reset sırasında iptal et
+    if (cloudVal !== null) {
+      localStorage.setItem(key, JSON.stringify(cloudVal));
+      anyUpdate = true;
+    }
+  }
+  if (anyUpdate) renderView();
+}
+
+/* ========== TASK LOGIC ========== */
+function getTasksForDate(dateStr) {
+  const tasks = getTasks();
+  const results = [];
+  for (const t of tasks) {
+    let show = false;
+    if (t.repeat === 'none') {
+      show = t.dueDate === dateStr;
+    } else if (t.repeat === 'daily') {
+      show = dateStr >= t.dueDate;
+    } else if (t.repeat === 'weekly') {
+      if (dateStr >= t.dueDate) {
+        const d = new Date(dateStr + 'T00:00:00');
+        const dow = d.getDay();
+        const days = (t.repeatConfig && t.repeatConfig.days) || [];
+        show = days.includes(dow);
+      }
+    } else if (t.repeat === 'monthly') {
+      if (dateStr >= t.dueDate) {
+        const origDay = parseInt(t.dueDate.split('-')[2], 10);
+        const thisDay = parseInt(dateStr.split('-')[2], 10);
+        show = origDay === thisDay;
+      }
+    }
+    // skipDates: tekrarlayan görevlerde taşınan tarihleri atla
+    if (show && (t.skipDates || []).includes(dateStr)) show = false;
+    if (show) {
+      results.push({ ...t, isDoneForDate: (t.completedDates || []).includes(dateStr) });
+    }
+  }
+  return results;
+}
+
+function getEventsForDate(dateStr) {
+  const events = getEvents();
+  return events[dateStr] || [];
+}
+
+/* ========== SHELF LOGIC ========== */
+function getShelfItems(dateStr) {
+  const items = [];
+  const holiday = getHoliday(dateStr);
+  if (holiday) items.push({ type: 'holiday', title: holiday });
+  // Doğum günleri
+  const bdays = getBirthdaysForDate(dateStr);
+  for (const b of bdays) {
+    const age = b.birthYear ? (new Date(dateStr).getFullYear() - parseInt(b.birthYear)) : null;
+    const label = age ? `🎂 ${b.name} (${age})` : `🎂 ${b.name}`;
+    items.push({ type: 'birthday', title: label, id: b.id });
+  }
+
+  const tasks = getTasksForDate(dateStr);
+  for (const t of tasks) {
+    if (t.priority === 'high' && !t.isDoneForDate) {
+      items.push({ type: 'task-high', title: t.title, id: t.id, dateStr });
+    }
+    if (t.pinnedToShelf && !t.isDoneForDate && t.priority !== 'high') {
+      items.push({ type: 'task-pinned', title: t.title, id: t.id, dateStr });
+    }
+  }
+
+  const events = getEventsForDate(dateStr);
+  for (const e of events) {
+    if (e.allDay) items.push({ type: 'event-allday', title: e.title, id: e.id, dateStr, color: e.color });
+    if (e.priority === 'high' && !e.allDay) items.push({ type: 'event-high', title: e.title, id: e.id, dateStr });
+  }
+
+  return items;
+}
+
+function renderShelfChip(item) {
+  const cls = item.type === 'holiday' ? 'holiday' :
+              item.type === 'task-high' ? 'task-high' :
+              item.type === 'task-pinned' ? 'task-pinned' :
+              item.type === 'birthday' ? 'birthday' :
+              item.type === 'event-allday' ? 'event-allday' : 'event-high';
+
+  let onclick = '';
+  if (item.type === 'task-high' || item.type === 'task-pinned') {
+    onclick = `onclick="openTaskModal('${item.id}')" style="cursor:pointer"`;
+  } else if (item.type === 'event-allday' || item.type === 'event-high') {
+    onclick = `onclick="openEventModal('${item.id}','${item.dateStr}')" style="cursor:pointer"`;
+  } else if (item.type === 'birthday') {
+    onclick = `onclick="openBirthdayModal('${item.id}')" style="cursor:pointer"`;
+  }
+
+  return `<span class="shelf-chip ${cls}" ${onclick}>${escapeHtml(item.title)}</span>`;
+}
+
+/* ========== STATE ========== */
+let currentView = 'daily';
+let currentDate = new Date();
+currentDate.setHours(0, 0, 0, 0);
+let miniCalDate = new Date(currentDate);
+let editingTaskId = null;
+let editingEventId = null;
+let editingEventDate = null;
+
+/* ========== APPLY SETTINGS ========== */
+function applyAccentColor(color) {
+  document.documentElement.style.setProperty('--accent', color);
+}
+
+function initSettings() {
+  const s = getSettings();
+  applyAccentColor(s.accentColor);
+}
+
+/* ========== SIDEBAR ========== */
+function initSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const state = getSidebarState();
+  if (state === 'collapsed') sidebar.classList.add('collapsed');
+
+  document.getElementById('collapseBtn').addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+    saveSidebarState(sidebar.classList.contains('collapsed') ? 'collapsed' : 'expanded');
+  });
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const view = item.dataset.view;
+      switchView(view);
+    });
+  });
+}
+
+/* ========== VIEW SWITCHING ========== */
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
+  document.getElementById('daily-view').classList.toggle('active', view === 'daily');
+  document.getElementById('weekly-view').classList.toggle('active', view === 'weekly');
+  document.getElementById('monthly-view').classList.toggle('active', view === 'monthly');
+  document.getElementById('settings-view').classList.toggle('active', view === 'settings');
+  document.getElementById('birthdays-view').classList.toggle('active', view === 'birthdays');
+
+  const topNav = document.getElementById('topbarNav');
+  topNav.style.display = (view === 'settings' || view === 'birthdays') ? 'none' : 'flex';
+
+  renderView();
+}
+
+function renderView() {
+  updateTopbar();
+  if (currentView === 'daily') renderDaily();
+  else if (currentView === 'weekly') renderWeekly();
+  else if (currentView === 'monthly') renderMonthly();
+  else if (currentView === 'settings') renderSettings();
+  else if (currentView === 'birthdays') renderBirthdays();
+}
+
+/* ========== TOPBAR ========== */
+const TR_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+const TR_DAYS_LONG = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+const TR_DAYS_SHORT = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
+const TR_DAYS_MINI = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
+
+function updateTopbar() {
+  const title = document.getElementById('topbarTitle');
+  const sub = document.getElementById('topbarSubtitle');
+  const todayStr = formatDateStr(new Date());
+
+  if (currentView === 'daily') {
+    title.textContent = 'Günlük';
+    const ds = formatDateStr(currentDate);
+    if (ds === todayStr) {
+      sub.textContent = 'Bugün — ' + currentDate.getDate() + ' ' + TR_MONTHS[currentDate.getMonth()] + ' ' + currentDate.getFullYear();
+    } else {
+      sub.textContent = currentDate.getDate() + ' ' + TR_MONTHS[currentDate.getMonth()] + ' ' + currentDate.getFullYear();
+    }
+  } else if (currentView === 'weekly') {
+    title.textContent = 'Haftalık';
+    const ws = getStartOfWeek(currentDate);
+    const we = addDays(ws, 6);
+    sub.textContent = ws.getDate() + ' ' + TR_MONTHS[ws.getMonth()] + ' – ' + we.getDate() + ' ' + TR_MONTHS[we.getMonth()] + ' ' + we.getFullYear();
+  } else if (currentView === 'monthly') {
+    title.textContent = 'Aylık';
+    sub.textContent = TR_MONTHS[currentDate.getMonth()] + ' ' + currentDate.getFullYear();
+  } else if (currentView === 'settings') {
+    title.textContent = 'Ayarlar';
+    sub.textContent = '';
+  } else if (currentView === 'birthdays') {
+    title.textContent = 'Doğum Günleri';
+    sub.textContent = '';
+  }
+}
+
+/* ========== NAVIGATION ========== */
+document.getElementById('btnPrev').addEventListener('click', () => {
+  if (currentView === 'daily') currentDate = addDays(currentDate, -1);
+  else if (currentView === 'weekly') currentDate = addDays(currentDate, -7);
+  else if (currentView === 'monthly') currentDate = addMonths(currentDate, -1);
+  renderView();
+});
+
+document.getElementById('btnNext').addEventListener('click', () => {
+  if (currentView === 'daily') currentDate = addDays(currentDate, 1);
+  else if (currentView === 'weekly') currentDate = addDays(currentDate, 7);
+  else if (currentView === 'monthly') currentDate = addMonths(currentDate, 1);
+  renderView();
+});
+
+document.getElementById('btnToday').addEventListener('click', () => {
+  currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
+  miniCalDate = new Date(currentDate);
+  renderView();
+});
+
+/* ========== DAILY VIEW ========== */
+function renderDaily() {
+  const todayStr = formatDateStr(new Date());
+  const yesterday = addDays(currentDate, -1);
+  const tomorrow = addDays(currentDate, 1);
+  const panels = [
+    { date: yesterday, type: 'side' },
+    { date: currentDate, type: 'center' },
+    { date: tomorrow, type: 'side' }
+  ];
+
+  const container = document.getElementById('daily-panels');
+  container.innerHTML = '';
+
+  panels.forEach(p => {
+    const ds = formatDateStr(p.date);
+    const isCenter = p.type === 'center';
+    const panel = document.createElement('div');
+    panel.className = `day-panel ${p.type}`;
+
+    const dayName = TR_DAYS_LONG[p.date.getDay()];
+    const dateNum = p.date.getDate();
+
+    let html = `<div class="panel-header">
+      <div class="panel-day-name">${dayName}</div>
+      <div class="panel-date-num">${dateNum}</div>
+    </div>`;
+
+    // Shelf
+    const shelfItems = getShelfItems(ds);
+    if (shelfItems.length > 0) {
+      html += `<div class="section-title">GÜNÜN RAFI</div>`;
+      html += `<div class="shelf-section"><div class="shelf-chips">`;
+      shelfItems.forEach(si => { html += renderShelfChip(si); });
+      html += `</div></div>`;
+    }
+
+    // Tasks
+    const tasks = getTasksForDate(ds);
+    html += `<div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>GÖREVLER</span>
+      ${isCenter ? `<div style="display:flex;gap:10px">
+        <span style="font-size:10px;color:var(--accent);cursor:pointer;letter-spacing:0;font-family:var(--font-main)" onclick="openTaskModal(null)">+ Görev</span>
+        <span style="font-size:10px;color:#5ecba8;cursor:pointer;letter-spacing:0;font-family:var(--font-main)" onclick="openEventModal(null,'${ds}')">+ Etkinlik</span>
+      </div>` : ''}
+    </div>`;
+    html += `<div class="task-list" data-drop-date="${ds}">`;
+    tasks.forEach(t => {
+      const isOverdue = !t.isDoneForDate && t.dueTime && ds <= todayStr && timeToMins(t.dueTime) < timeToMins(new Date().toTimeString().slice(0, 5)) && ds === todayStr;
+      const overdueClass = isOverdue ? ' overdue' : '';
+      html += `<div class="pcard${overdueClass}" data-task-id="${t.id}" data-date="${ds}" draggable="true">
+        <div class="pcard-drag-handle">⠿</div>
+        <div class="pcard-priority ${t.priority}"></div>
+        <div class="pcard-checkbox ${t.isDoneForDate ? 'checked' : ''}" data-task-id="${t.id}" data-date="${ds}"></div>
+        <div class="pcard-body">
+          <div class="pcard-title ${t.isDoneForDate ? 'done' : ''}">${escapeHtml(t.title)}</div>
+          ${t.dueTime ? `<div class="pcard-time">${t.dueTime}</div>` : ''}
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+
+    // Events
+    const dayEvents = getEventsForDate(ds);
+    if (dayEvents.length > 0) {
+      html += `<div class="section-title">ETKİNLİKLER</div>`;
+      html += `<div class="event-list" data-drop-date-event="${ds}">`;
+      dayEvents.forEach(ev => {
+        const timeStr = ev.allDay ? 'Tüm gün' : (ev.start + (ev.end ? '–' + ev.end : ''));
+        const evColor = ev.color || 'var(--accent)';
+        html += `<div class="pcard" data-event-id="${ev.id}" data-date="${ds}" draggable="true" style="border-left:3px solid ${evColor}">
+          <div class="pcard-drag-handle">⠿</div>
+          <div class="pcard-body">
+            <div class="pcard-title">${escapeHtml(ev.title)}</div>
+            <div class="pcard-time">${timeStr}</div>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+
+    // Quick add
+    html += `<input class="quick-add-input" data-date="${ds}" placeholder="+ Görev ekle..." />`;
+
+    // Notes
+    const notes = getNotes();
+    const noteText = notes[ds] || '';
+    html += `<div class="section-title">NOTLAR</div>`;
+    if (isCenter) {
+      html += `<textarea class="notes-textarea" data-date="${ds}" placeholder="Bugünün notları...">${escapeHtml(noteText)}</textarea>`;
+    } else {
+      if (noteText) {
+        html += `<div class="notes-preview" data-date="${ds}" title="Düzenlemek için tıklayın">${escapeHtml(noteText)}</div>`;
+      } else {
+        html += `<div class="notes-preview" data-date="${ds}" title="Not eklemek için tıklayın" style="color:var(--text3);font-style:italic">Not yok</div>`;
+      }
+    }
+
+    panel.innerHTML = html;
+    container.appendChild(panel);
+  });
+
+  // Bind events
+  bindDailyEvents();
+  bindDragAndContextMenu();
+
+  // Right sidebar
+  renderMiniCal();
+  renderUpcoming();
+  renderStats();
+}
+
+function bindDailyEvents() {
+  // Checkbox toggling
+  document.querySelectorAll('.pcard-checkbox').forEach(cb => {
+    cb.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const taskId = cb.dataset.taskId;
+      const dateStr = cb.dataset.date;
+      const tasks = getTasks();
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+      if (!task.completedDates) task.completedDates = [];
+      const idx = task.completedDates.indexOf(dateStr);
+      if (idx >= 0) task.completedDates.splice(idx, 1);
+      else task.completedDates.push(dateStr);
+      saveTasks(tasks);
+      renderView();
+    });
+  });
+
+  // Task card click → edit
+  document.querySelectorAll('.pcard').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.pcard-checkbox')) return;
+      const taskId = card.dataset.taskId;
+      openTaskModal(taskId);
+    });
+  });
+
+  // Quick add
+  document.querySelectorAll('.quick-add-input').forEach(input => {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && input.value.trim()) {
+        const settings = getSettings();
+        const tasks = getTasks();
+        tasks.push({
+          id: generateId(),
+          title: input.value.trim(),
+          dueDate: input.dataset.date,
+          dueTime: '',
+          priority: settings.defaultPriority,
+          repeat: 'none',
+          repeatConfig: { days: [] },
+          notes: '',
+          pinnedToShelf: false,
+          createdAt: formatDateStr(new Date()),
+          completedDates: []
+        });
+        saveTasks(tasks);
+        input.value = '';
+        renderView();
+      }
+    });
+  });
+
+  // Notes auto-save
+  const saveNote = debounce((dateStr, value) => {
+    const notes = getNotes();
+    if (value.trim()) notes[dateStr] = value;
+    else delete notes[dateStr];
+    saveNotes(notes);
+  }, 500);
+
+  document.querySelectorAll('.notes-textarea').forEach(ta => {
+    ta.addEventListener('input', () => {
+      saveNote(ta.dataset.date, ta.value);
+    });
+  });
+
+  // Notes preview click → expand
+  document.querySelectorAll('.notes-preview').forEach(div => {
+    div.addEventListener('click', () => {
+      const dateStr = div.dataset.date;
+      const notes = getNotes();
+      const noteText = notes[dateStr] || '';
+      const ta = document.createElement('textarea');
+      ta.className = 'notes-textarea';
+      ta.dataset.date = dateStr;
+      ta.placeholder = 'Notlar...';
+      ta.value = noteText;
+      div.replaceWith(ta);
+      ta.focus();
+      ta.addEventListener('input', () => {
+        saveNote(ta.dataset.date, ta.value);
+      });
+      ta.addEventListener('blur', () => {
+        renderView();
+      });
+    });
+  });
+}
+
+/* ========== MINI CALENDAR ========== */
+function renderMiniCal() {
+  const container = document.getElementById('miniCal');
+  const todayStr = formatDateStr(new Date());
+  const selectedStr = formatDateStr(currentDate);
+
+  const year = miniCalDate.getFullYear();
+  const month = miniCalDate.getMonth();
+
+  let html = `<div class="mini-cal-header">
+    <button class="mini-cal-btn" id="miniCalPrev"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2L4 6L8 10"/></svg></button>
+    <span class="mini-cal-title">${TR_MONTHS[month]} ${year}</span>
+    <button class="mini-cal-btn" id="miniCalNext"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2L8 6L4 10"/></svg></button>
+  </div>`;
+
+  html += `<div class="mini-cal-grid">`;
+  const dayHeaders = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+  dayHeaders.forEach(d => { html += `<div class="mini-cal-day-header">${d}</div>`; });
+
+  const firstDay = new Date(year, month, 1);
+  let startDow = firstDay.getDay();
+  if (startDow === 0) startDow = 7;
+  const startDate = addDays(firstDay, -(startDow - 1));
+
+  for (let i = 0; i < 42; i++) {
+    const d = addDays(startDate, i);
+    const ds = formatDateStr(d);
+    const isOther = d.getMonth() !== month;
+    const isToday = ds === todayStr;
+    const isSelected = ds === selectedStr;
+    const holiday = getHoliday(ds);
+    const tasksForDay = getTasksForDate(ds);
+    const hasTasks = tasksForDay.length > 0;
+
+    let cls = 'mini-cal-day';
+    if (isOther) cls += ' other-month';
+    if (isToday) cls += ' today';
+    if (isSelected && !isToday) cls += ' selected';
+    if (holiday && !isToday) cls += ' holiday-day';
+    if (hasTasks && !isToday) cls += ' has-tasks';
+
+    html += `<div class="${cls}" data-date="${ds}">${d.getDate()}</div>`;
+  }
+  html += `</div>`;
+
+  container.innerHTML = html;
+
+  // Bind
+  document.getElementById('miniCalPrev').addEventListener('click', () => {
+    miniCalDate = addMonths(miniCalDate, -1);
+    renderMiniCal();
+  });
+  document.getElementById('miniCalNext').addEventListener('click', () => {
+    miniCalDate = addMonths(miniCalDate, 1);
+    renderMiniCal();
+  });
+  container.querySelectorAll('.mini-cal-day').forEach(day => {
+    day.addEventListener('click', () => {
+      currentDate = new Date(day.dataset.date + 'T00:00:00');
+      renderView();
+    });
+  });
+}
+
+/* ========== UPCOMING ========== */
+function renderUpcoming() {
+  const container = document.getElementById('upcomingCard');
+  const todayStr = formatDateStr(currentDate);
+
+  const holidays = [];
+  const importantTasks = [];
+  const upcomingEvents = [];
+
+  for (let i = 0; i <= 7; i++) {
+    const d = addDays(currentDate, i);
+    const ds = formatDateStr(d);
+    const isToday = i === 0;
+    const dayLabel = isToday ? 'Bugün' : d.toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric', month: 'short' });
+
+    // Holidays
+    const holiday = getHoliday(ds);
+    if (holiday) holidays.push({ label: dayLabel, title: holiday });
+
+    // High priority tasks
+    const tasks = getTasksForDate(ds);
+    tasks.filter(t => t.priority === 'high' && !t.isDoneForDate).forEach(t => {
+      importantTasks.push({ label: dayLabel, title: t.title, color: 'var(--red)' });
+    });
+
+    // Events
+    const events = getEventsForDate(ds);
+    events.forEach(ev => {
+      upcomingEvents.push({ label: dayLabel + (ev.allDay ? '' : ' · ' + ev.start), title: ev.title, color: ev.color || 'var(--accent)' });
+    });
+  }
+
+  let html = `<div class="upcoming-card-title">YAKLAŞAN 7 GÜN</div>`;
+
+  if (holidays.length > 0) {
+    html += `<div style="margin-bottom:12px">
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Bayramlar</div>`;
+    holidays.forEach(h => {
+      html += `<div class="upcoming-task" style="border-left-color:var(--amber);margin-bottom:4px">
+        <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">${h.label}</div>
+        <div style="color:var(--amber)">${escapeHtml(h.title)}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (importantTasks.length > 0) {
+    html += `<div style="margin-bottom:12px">
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Önemli Görevler</div>`;
+    importantTasks.forEach(t => {
+      html += `<div class="upcoming-task" style="border-left-color:${t.color};margin-bottom:4px">
+        <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">${t.label}</div>
+        <div>${escapeHtml(t.title)}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (upcomingEvents.length > 0) {
+    html += `<div>
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Etkinlikler</div>`;
+    upcomingEvents.forEach(ev => {
+      html += `<div class="upcoming-task" style="border-left-color:${ev.color};margin-bottom:4px">
+        <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">${ev.label}</div>
+        <div>${escapeHtml(ev.title)}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (holidays.length === 0 && importantTasks.length === 0 && upcomingEvents.length === 0) {
+    html += `<div style="font-size:12px;color:var(--text3);text-align:center;padding:16px 0">Yaklaşan etkinlik yok</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+/* ========== STATS ========== */
+function renderStats() {
+  const container = document.getElementById('statsCard');
+  const ws = getStartOfWeek(currentDate);
+  let totalTasks = 0, completedTasks = 0, totalEvents = 0;
+
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(ws, i);
+    const ds = formatDateStr(d);
+    const tasks = getTasksForDate(ds);
+    totalTasks += tasks.length;
+    completedTasks += tasks.filter(t => t.isDoneForDate).length;
+    totalEvents += getEventsForDate(ds).length;
+  }
+
+  const pct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  let html = `<div class="stats-card-title">HAFTALIK İSTATİSTİKLER</div>`;
+  html += `<div class="stats-row"><span class="stats-label">Toplam görev</span><span class="stats-value">${totalTasks}</span></div>`;
+  html += `<div class="stats-row"><span class="stats-label">Tamamlanan</span><span class="stats-value">${completedTasks}</span></div>`;
+  html += `<div class="stats-row"><span class="stats-label">Tamamlanma oranı</span><span class="stats-value">${pct}%</span></div>`;
+  html += `<div class="stats-row"><span class="stats-label">Etkinlikler</span><span class="stats-value">${totalEvents}</span></div>`;
+  html += `<div style="margin-top:10px;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden">
+    <div style="height:100%;width:${pct}%;background:var(--green);border-radius:2px;transition:width 0.3s"></div>
+  </div>`;
+
+  container.innerHTML = html;
+}
+
+/* ========== WEEKLY VIEW ========== */
+function renderWeekly() {
+  const todayStr = formatDateStr(new Date());
+  const ws = getStartOfWeek(currentDate);
+
+  // Header
+  const headerEl = document.getElementById('weeklyHeader');
+  let headerHtml = `<div class="weekly-corner"></div>`;
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(ws, i);
+    const ds = formatDateStr(d);
+    const isToday = ds === todayStr;
+    const holiday = getHoliday(ds);
+    const shelfItems = getShelfItems(ds);
+
+    let cls = 'weekly-day-col-header';
+    if (isToday) cls += ' today';
+    if (holiday) cls += ' holiday';
+
+    headerHtml += `<div class="${cls}">
+      <div class="weekly-day-name">${TR_DAYS_SHORT[d.getDay()]}</div>
+      <div class="weekly-day-num">${d.getDate()}</div>`;
+
+    if (shelfItems.length > 0) {
+      headerHtml += `<div class="weekly-shelf">`;
+      const maxShow = 3;
+      const shown = shelfItems.slice(0, maxShow);
+      shown.forEach(si => { headerHtml += renderShelfChip(si); });
+      if (shelfItems.length > maxShow) {
+        headerHtml += `<span class="shelf-chip task-pinned">+${shelfItems.length - maxShow} daha</span>`;
+      }
+      headerHtml += `</div>`;
+    }
+
+    headerHtml += `</div>`;
+  }
+  headerEl.innerHTML = headerHtml;
+
+  // Grid
+  const gridEl = document.getElementById('weeklyGrid');
+  let gridHtml = '';
+
+  // Time column
+  gridHtml += `<div class="weekly-time-col">`;
+  for (let h = 7; h <= 23; h++) {
+    gridHtml += `<div class="weekly-time-slot">${String(h).padStart(2, '0')}:00</div>`;
+  }
+  gridHtml += `</div>`;
+
+  // Day columns
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(ws, i);
+    const ds = formatDateStr(d);
+    const events = getEventsForDate(ds);
+    const tasks = getTasksForDate(ds);
+
+    gridHtml += `<div class="weekly-day-col" data-date="${ds}">`;
+    for (let h = 7; h <= 23; h++) {
+      gridHtml += `<div class="weekly-hour-cell" data-date="${ds}" data-hour="${h}"></div>`;
+    }
+
+    // Tasks with dueTime overlay
+    tasks.forEach(t => {
+      if (!t.dueTime) return;
+      const startMins = timeToMins(t.dueTime);
+      if (startMins < 420 || startMins > 1380) return;
+      const topOffset = ((startMins - 420) / 60) * 56;
+      const height = 48;
+      const prioColor = t.priority === 'high' ? 'var(--red)' : t.priority === 'medium' ? 'var(--orange)' : t.priority === 'low' ? 'var(--accent)' : '#555';
+      const doneStyle = t.isDoneForDate ? 'opacity:0.4;text-decoration:line-through;' : '';
+      gridHtml += `<div class="weekly-event" data-task-id="${t.id}" data-date="${ds}" style="top:${topOffset}px;height:${height}px;background:${prioColor}18;border-left-color:${prioColor};${doneStyle}cursor:pointer;">
+        <div style="font-weight:500;${doneStyle}">${escapeHtml(t.title)}</div>
+        <div style="opacity:0.6;font-size:9px;">${t.dueTime}${t.repeat !== 'none' ? ' ↻' : ''}</div>
+      </div>`;
+    });
+
+    // Events overlay
+    events.forEach(ev => {
+      if (ev.allDay) return;
+      const startMins = timeToMins(ev.start);
+      const endMins = timeToMins(ev.end) || startMins + 60;
+      const topOffset = ((startMins - 420) / 60) * 56;
+      const height = Math.max(((endMins - startMins) / 60) * 56, 20);
+      const color = ev.color || 'var(--accent)';
+      gridHtml += `<div class="weekly-event" data-event-id="${ev.id}" data-date="${ds}" style="top:${topOffset}px;height:${height}px;background:${color}22;border-left-color:${color};">
+        <div style="font-weight:500;">${escapeHtml(ev.title)}</div>
+        <div style="opacity:0.7;font-size:9px;">${ev.start}–${ev.end || ''}</div>
+      </div>`;
+    });
+
+    gridHtml += `</div>`;
+  }
+
+  // Now indicator
+  const now = new Date();
+  const nowStr = formatDateStr(now);
+  const nowWs = getStartOfWeek(now);
+  const wsStr = formatDateStr(ws);
+  if (formatDateStr(nowWs) === wsStr) {
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    if (nowMins >= 420 && nowMins <= 1380) {
+      const topPx = ((nowMins - 420) / 60) * 56;
+      gridHtml += `<div class="weekly-now-line" style="top:${topPx}px;"></div>`;
+      gridHtml += `<div class="weekly-now-dot" style="top:${topPx}px;"></div>`;
+    }
+  }
+
+  gridEl.innerHTML = gridHtml;
+
+  // Bind events
+  gridEl.querySelectorAll('.weekly-hour-cell').forEach(cell => {
+    cell.addEventListener('click', () => {
+      openEventModal(null, cell.dataset.date, cell.dataset.hour);
+    });
+  });
+
+  gridEl.querySelectorAll('.weekly-event').forEach(evEl => {
+    evEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (evEl.dataset.taskId) {
+        openTaskModal(evEl.dataset.taskId);
+      } else {
+        openEventModal(evEl.dataset.eventId, evEl.dataset.date);
+      }
+    });
+  });
+  bindDragAndContextMenu();
+}
+
+/* ========== MONTHLY VIEW ========== */
+function renderMonthly() {
+  const todayStr = formatDateStr(new Date());
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  // Header
+  const headerEl = document.getElementById('monthlyHeader');
+  headerEl.innerHTML = '';
+  const dayHeaders = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+  dayHeaders.forEach(d => {
+    headerEl.innerHTML += `<div class="monthly-day-header">${d}</div>`;
+  });
+
+  // Grid
+  const gridEl = document.getElementById('monthlyGrid');
+  gridEl.innerHTML = '';
+
+  const firstDay = new Date(year, month, 1);
+  let startDow = firstDay.getDay();
+  if (startDow === 0) startDow = 7;
+  const startDate = addDays(firstDay, -(startDow - 1));
+
+  const totalCells = 42;
+  for (let i = 0; i < totalCells; i++) {
+    const d = addDays(startDate, i);
+    const ds = formatDateStr(d);
+    const isOther = d.getMonth() !== month;
+    const isToday = ds === todayStr;
+    const holiday = getHoliday(ds);
+    const tasks = getTasksForDate(ds);
+    const events = getEventsForDate(ds);
+
+    let cls = 'monthly-cell';
+    if (isOther) cls += ' other-month';
+    if (isToday) cls += ' today';
+    if (tasks.length > 0 || events.length > 0) cls += ' has-tasks-mobile';
+
+    let html = `<div class="monthly-cell-num">${d.getDate()}</div>`;
+    if (holiday) html += `<div class="monthly-cell-holiday">${escapeHtml(holiday)}</div>`;
+
+    // Görevler ve etkinlikleri birleştir, max 3 göster
+    const allItems = [
+      ...tasks.map(t => ({
+        title: t.title,
+        color: t.priority === 'high' ? 'var(--red)' : t.priority === 'medium' ? 'var(--orange)' : t.priority === 'low' ? 'var(--accent)' : '#555',
+        taskId: t.id, dateStr: ds
+      })),
+      ...events.map(ev => ({
+        title: (ev.allDay ? '● ' : (ev.start ? ev.start + ' ' : '')) + ev.title,
+        color: ev.color || 'var(--accent)',
+        eventId: ev.id, dateStr: ds
+      }))
+    ];
+
+    allItems.slice(0, 3).forEach(item => {
+      const extraAttrs = item.taskId
+        ? `data-task-id="${item.taskId}" data-date="${item.dateStr}"`
+        : `data-event-id="${item.eventId}" data-date="${item.dateStr}"`;
+      html += `<div class="monthly-task-preview" style="border-left-color:${item.color}" ${extraAttrs}>${escapeHtml(item.title)}</div>`;
+    });
+
+    if (allItems.length > 3) {
+      html += `<div class="monthly-task-preview" style="color:var(--text3);border-left-color:transparent">+${allItems.length - 3} daha</div>`;
+    }
+
+    const cell = document.createElement('div');
+    cell.className = cls;
+    cell.innerHTML = html;
+    cell.dataset.date = ds;
+    cell.addEventListener('click', (e) => {
+      if (e.target.closest('.monthly-task-preview')) return; // context menu için
+      currentDate = new Date(ds + 'T00:00:00');
+      switchView('daily');
+    });
+    gridEl.appendChild(cell);
+  }
+  bindDragAndContextMenu();
+}
+
+/* ========== SETTINGS VIEW ========== */
+/* ========== BIRTHDAY VIEW ========== */
+const TR_MONTHS_LONG = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+function renderBirthdays() {
+  const container = document.getElementById('birthdaysPanel');
+  const bdays = getBirthdays();
+  // Yıl boyunca sırala (ay-gün bazında)
+  const sorted = [...bdays].sort((a, b) => a.monthDay.localeCompare(b.monthDay));
+
+  let html = `<div class="settings-section" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:0">
+    <div class="settings-section-title" style="margin-bottom:0">Doğum Günleri</div>
+    <button class="btn btn-primary" onclick="openBirthdayModal(null)" style="font-size:12px;padding:6px 14px">+ Ekle</button>
+  </div>`;
+
+  if (sorted.length === 0) {
+    html += `<div class="settings-section" style="color:var(--text3);font-size:13px;text-align:center;padding:30px 0">
+      Henüz doğum günü eklenmemiş.<br>Yukarıdaki butona tıkla!
+    </div>`;
+  } else {
+    // Yaklaşan sıra: bugünden itibaren
+    const today = new Date();
+    const todayMD = String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+    const upcoming = [...sorted.filter(b => b.monthDay >= todayMD), ...sorted.filter(b => b.monthDay < todayMD)];
+
+    html += `<div class="settings-section" style="padding-top:8px">`;
+    upcoming.forEach(b => {
+      const [m, d] = b.monthDay.split('-');
+      const monthName = TR_MONTHS_LONG[parseInt(m)-1];
+      const thisYear = today.getFullYear();
+      const bdayThisYear = new Date(thisYear, parseInt(m)-1, parseInt(d));
+      const bdayNext = bdayThisYear < today ? new Date(thisYear+1, parseInt(m)-1, parseInt(d)) : bdayThisYear;
+      const diff = Math.ceil((bdayNext - today) / (1000*60*60*24));
+      const diffStr = diff === 0 ? '🎉 Bugün!' : diff === 1 ? 'Yarın' : `${diff} gün sonra`;
+      const age = b.birthYear ? (thisYear - parseInt(b.birthYear) + (bdayThisYear < today ? 1 : 0)) : null;
+      const ageStr = age ? ` · ${age} yaşına girecek` : '';
+
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)" onclick="openBirthdayModal('${b.id}')" style="cursor:pointer">
+        <div style="cursor:pointer">
+          <div style="font-size:14px;font-weight:500;color:var(--text1)">🎂 ${escapeHtml(b.name)}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">${d} ${monthName}${ageStr}</div>
+        </div>
+        <div style="font-size:12px;color:${diff===0?'var(--accent)':'var(--text3)'};text-align:right;flex-shrink:0;margin-left:12px">${diffStr}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+let editingBirthdayId = null;
+
+function openBirthdayModal(id) {
+  editingBirthdayId = id || null;
+  const overlay = document.getElementById('birthdayModalOverlay');
+  const titleEl = document.getElementById('birthdayModalTitle');
+  const deleteBtn = document.getElementById('birthdayDeleteBtn');
+
+  if (editingBirthdayId) {
+    titleEl.textContent = 'Doğum Günü Düzenle';
+    deleteBtn.style.display = 'block';
+    const bday = getBirthdays().find(b => b.id === editingBirthdayId);
+    if (bday) {
+      document.getElementById('birthdayName').value = bday.name;
+      const [m, d] = bday.monthDay.split('-');
+      document.getElementById('birthdayMonth').value = m;
+      document.getElementById('birthdayDay').value = parseInt(d);
+      document.getElementById('birthdayYear').value = bday.birthYear || '';
+      document.getElementById('birthdayReminder').value = bday.reminder || 'day_9am';
+    }
+  } else {
+    titleEl.textContent = 'Doğum Günü Ekle';
+    deleteBtn.style.display = 'none';
+    document.getElementById('birthdayName').value = '';
+    document.getElementById('birthdayMonth').value = String(new Date().getMonth()+1).padStart(2,'0');
+    document.getElementById('birthdayDay').value = '';
+    document.getElementById('birthdayYear').value = '';
+    document.getElementById('birthdayReminder').value = 'day_9am';
+  }
+
+  overlay.classList.add('active');
+  document.getElementById('birthdayName').focus();
+}
+
+function closeBirthdayModal() {
+  document.getElementById('birthdayModalOverlay').classList.remove('active');
+  editingBirthdayId = null;
+}
+
+document.getElementById('birthdayCancelBtn').addEventListener('click', closeBirthdayModal);
+document.getElementById('birthdayModalOverlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('birthdayModalOverlay')) closeBirthdayModal();
+});
+
+document.getElementById('birthdaySaveBtn').addEventListener('click', () => {
+  const name = document.getElementById('birthdayName').value.trim();
+  if (!name) { document.getElementById('birthdayName').focus(); return; }
+  const month = document.getElementById('birthdayMonth').value;
+  const day = parseInt(document.getElementById('birthdayDay').value);
+  if (!day || day < 1 || day > 31) { document.getElementById('birthdayDay').focus(); return; }
+  const year = document.getElementById('birthdayYear').value.trim();
+  const monthDay = month + '-' + String(day).padStart(2,'0');
+  const reminder = document.getElementById('birthdayReminder').value;
+
+  const bdays = getBirthdays();
+  if (editingBirthdayId) {
+    const idx = bdays.findIndex(b => b.id === editingBirthdayId);
+    if (idx >= 0) bdays[idx] = { ...bdays[idx], name, monthDay, birthYear: year || null, reminder };
+  } else {
+    bdays.push({ id: generateId(), name, monthDay, birthYear: year || null, reminder });
+  }
+  saveBirthdays(bdays);
+  closeBirthdayModal();
+  renderView();
+});
+
+document.getElementById('birthdayDeleteBtn').addEventListener('click', () => {
+  if (!editingBirthdayId) return;
+  if (confirm('Bu doğum gününü silmek istiyor musun?')) {
+    const bdays = getBirthdays().filter(b => b.id !== editingBirthdayId);
+    saveBirthdays(bdays);
+    closeBirthdayModal();
+    renderView();
+  }
+});
+
+function renderSettings() {
+  const container = document.getElementById('settingsPanel');
+  const settings = getSettings();
+
+  const accentColors = ['#4a9eff', '#a855f7', '#10b981', '#f59e0b', '#ef4444'];
+  const priorities = [
+    { value: 'none', label: 'Yok' },
+    { value: 'low', label: 'Düşük' },
+    { value: 'medium', label: 'Orta' },
+    { value: 'high', label: 'Yüksek' }
+  ];
+
+  let html = '';
+
+  // Accent Color
+  html += `<div class="settings-section">
+    <div class="settings-section-title">Vurgu Rengi</div>
+    <div class="accent-dots">`;
+  accentColors.forEach(c => {
+    const sel = c === settings.accentColor ? ' selected' : '';
+    html += `<div class="accent-dot${sel}" data-color="${c}" style="background:${c}"></div>`;
+  });
+  html += `</div></div>`;
+
+  // Default Priority
+  html += `<div class="settings-section">
+    <div class="settings-section-title">Varsayılan Öncelik</div>
+    <select class="form-select" id="settingsDefaultPriority">`;
+  priorities.forEach(p => {
+    html += `<option value="${p.value}" ${settings.defaultPriority === p.value ? 'selected' : ''}>${p.label}</option>`;
+  });
+  html += `</select></div>`;
+
+  // Hatırlatıcı varsayılanları
+  const taskReminderOpts = [
+    { value: 'none', label: 'Yok' },
+    { value: 'at_time', label: 'Tam saatinde' },
+    { value: '10min', label: '10 dakika önce' },
+    { value: '30min', label: '30 dakika önce' },
+    { value: '1hour', label: '1 saat önce' },
+    { value: 'day_9am', label: 'O gün saat 09:00' },
+    { value: '1day_9am', label: '1 gün önce saat 09:00' },
+    { value: '1week_9am', label: '1 hafta önce saat 09:00' },
+  ];
+  const eventReminderOpts = [
+    { value: 'none', label: 'Yok' },
+    { value: 'at_time', label: 'Tam saatinde' },
+    { value: '5min', label: '5 dakika önce' },
+    { value: '10min', label: '10 dakika önce' },
+    { value: '30min', label: '30 dakika önce' },
+    { value: '1hour', label: '1 saat önce' },
+    { value: '1day_9am', label: '1 gün önce saat 09:00' },
+    { value: '1week_9am', label: '1 hafta önce saat 09:00' },
+  ];
+
+  html += `<div class="settings-section">
+    <div class="settings-section-title">Varsayılan Görev Hatırlatıcısı</div>
+    <select class="form-select" id="settingsTaskReminder">
+      ${taskReminderOpts.map(o => `<option value="${o.value}" ${(settings.defaultTaskReminder||'none')===o.value?'selected':''}>${o.label}</option>`).join('')}
+    </select>
+  </div>`;
+
+  html += `<div class="settings-section">
+    <div class="settings-section-title">Varsayılan Etkinlik Hatırlatıcısı</div>
+    <select class="form-select" id="settingsEventReminder">
+      ${eventReminderOpts.map(o => `<option value="${o.value}" ${(settings.defaultEventReminder||'10min')===o.value?'selected':''}>${o.label}</option>`).join('')}
+    </select>
+  </div>`;
+
+  html += `<div class="settings-section">
+    <div class="settings-section-title">Günlük Özet Bildirimi</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:10px">Her gün belirtilen saatte o günün yüksek öncelikli görevlerini bildirir.</p>
+    <div style="display:flex;align-items:center;gap:10px">
+      <input class="form-input" type="time" id="settingsDailySummary" value="${settings.dailySummaryTime||'09:00'}" style="width:120px">
+      <label class="form-check" style="margin:0">
+        <input type="checkbox" id="settingsDailySummaryEnabled" ${settings.dailySummaryEnabled?'checked':''}>
+        Aktif
+      </label>
+    </div>
+  </div>`;
+
+  // Bildirimler
+  html += `<div class="settings-section">
+    <div class="settings-section-title">Bildirimler</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:10px">Görev ve etkinlik hatırlatıcıları için bildirim iznine ihtiyaç var.</p>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="btn" id="settingsNotifBtn">Bildirime İzin Ver</button>
+      <span id="notifStatus" style="font-size:12px;color:var(--text3)"></span>
+    </div>
+  </div>`;
+
+  // Reset
+  html += `<div class="settings-section">
+    <div class="settings-section-title">Verileri Sıfırla</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Tüm görevler, etkinlikler ve notlar silinir. Ayarlar korunur.</p>
+    <button class="btn btn-danger" id="settingsResetBtn">Tüm Verileri Sil</button>
+  </div>`;
+
+  container.innerHTML = html;
+
+  // Bind
+  container.querySelectorAll('.accent-dot').forEach(dot => {
+    dot.addEventListener('click', () => {
+      const color = dot.dataset.color;
+      const s = getSettings();
+      s.accentColor = color;
+      saveSettings(s);
+      applyAccentColor(color);
+      renderSettings();
+    });
+  });
+
+  document.getElementById('settingsDefaultPriority').addEventListener('change', (e) => {
+    const s = getSettings();
+    s.defaultPriority = e.target.value;
+    saveSettings(s);
+  });
+
+  document.getElementById('settingsTaskReminder').addEventListener('change', (e) => {
+    const s = getSettings(); s.defaultTaskReminder = e.target.value; saveSettings(s);
+  });
+  document.getElementById('settingsEventReminder').addEventListener('change', (e) => {
+    const s = getSettings(); s.defaultEventReminder = e.target.value; saveSettings(s);
+  });
+  document.getElementById('settingsDailySummary').addEventListener('change', (e) => {
+    const s = getSettings(); s.dailySummaryTime = e.target.value; saveSettings(s);
+    scheduleDailySummary();
+  });
+  document.getElementById('settingsDailySummaryEnabled').addEventListener('change', (e) => {
+    const s = getSettings(); s.dailySummaryEnabled = e.target.checked; saveSettings(s);
+    scheduleDailySummary();
+  });
+
+  const notifBtn = document.getElementById('settingsNotifBtn');
+  if (notifBtn) {
+    notifBtn.addEventListener('click', requestNotificationPermission);
+    updateNotifStatus();
+  }
+
+  document.getElementById('settingsResetBtn').addEventListener('click', async () => {
+    if (confirm('Tüm görev, etkinlik ve notlar silinecek. Ayarlar korunacak. Emin misiniz?')) {
+      // Cloud sync'i geçici olarak durdur
+      _blockCloudSync = true;
+      // Önce localStorage'ı temizle
+      localStorage.setItem('plano_tasks', JSON.stringify([]));
+      localStorage.setItem('plano_notes', JSON.stringify({}));
+      localStorage.setItem('plano_events', JSON.stringify({}));
+      // Cloud'a da boş veri yaz ve tamamlanmasını bekle
+      await Promise.all([
+        apiSet('plano_tasks', []),
+        apiSet('plano_notes', {}),
+        apiSet('plano_events', {})
+      ]);
+      // Sync'i tekrar aç, sonra render et
+      _blockCloudSync = false;
+      renderView();
+    }
+  });
+}
+
+/* ========== TASK MODAL ========== */
+function openTaskModal(taskId) {
+  editingTaskId = taskId || null;
+  const overlay = document.getElementById('taskModalOverlay');
+  const titleEl = document.getElementById('taskModalTitle');
+  const deleteBtn = document.getElementById('taskDeleteBtn');
+
+  if (editingTaskId) {
+    titleEl.textContent = 'Görevi Düzenle';
+    deleteBtn.style.display = 'block';
+    const tasks = getTasks();
+    const task = tasks.find(t => t.id === editingTaskId);
+    if (task) {
+      document.getElementById('taskTitle').value = task.title;
+      document.getElementById('taskDate').value = task.dueDate;
+      document.getElementById('taskTime').value = task.dueTime || '';
+      document.getElementById('taskPriority').value = task.priority;
+      document.getElementById('taskRepeat').value = task.repeat;
+      document.getElementById('taskNotes').value = task.notes || '';
+      document.getElementById('taskPinned').checked = task.pinnedToShelf || false;
+      document.getElementById('taskReminder').value = task.reminder || getSettings().defaultTaskReminder || 'none';
+
+      // Weekly days
+      const days = (task.repeatConfig && task.repeatConfig.days) || [];
+      document.querySelectorAll('#taskWeeklyDays input[type="checkbox"]').forEach(cb => {
+        cb.checked = days.includes(parseInt(cb.value));
+      });
+      document.getElementById('taskWeeklyDays').style.display = task.repeat === 'weekly' ? 'flex' : 'none';
+    }
+  } else {
+    titleEl.textContent = 'Yeni Görev';
+    deleteBtn.style.display = 'none';
+    document.getElementById('taskTitle').value = '';
+    document.getElementById('taskDate').value = formatDateStr(currentDate);
+    document.getElementById('taskTime').value = '';
+    document.getElementById('taskPriority').value = getSettings().defaultPriority;
+    document.getElementById('taskRepeat').value = 'none';
+    document.getElementById('taskNotes').value = '';
+    document.getElementById('taskPinned').checked = false;
+    document.getElementById('taskWeeklyDays').style.display = 'none';
+    document.querySelectorAll('#taskWeeklyDays input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+  }
+
+  overlay.classList.add('active');
+  document.getElementById('taskTitle').focus();
+}
+
+function closeTaskModal() {
+  document.getElementById('taskModalOverlay').classList.remove('active');
+  editingTaskId = null;
+}
+
+document.getElementById('taskRepeat').addEventListener('change', (e) => {
+  document.getElementById('taskWeeklyDays').style.display = e.target.value === 'weekly' ? 'flex' : 'none';
+});
+
+document.getElementById('taskCancelBtn').addEventListener('click', closeTaskModal);
+
+document.getElementById('taskSaveBtn').addEventListener('click', () => {
+  const title = document.getElementById('taskTitle').value.trim();
+  if (!title) { document.getElementById('taskTitle').focus(); return; }
+
+  const dueDate = document.getElementById('taskDate').value;
+  const dueTime = document.getElementById('taskTime').value;
+  const priority = document.getElementById('taskPriority').value;
+  const repeat = document.getElementById('taskRepeat').value;
+  const notes = document.getElementById('taskNotes').value;
+  const pinnedToShelf = document.getElementById('taskPinned').checked;
+  const reminder = document.getElementById('taskReminder').value;
+
+  const days = [];
+  if (repeat === 'weekly') {
+    document.querySelectorAll('#taskWeeklyDays input[type="checkbox"]:checked').forEach(cb => {
+      days.push(parseInt(cb.value));
+    });
+  }
+
+  const tasks = getTasks();
+
+  if (editingTaskId) {
+    const idx = tasks.findIndex(t => t.id === editingTaskId);
+    if (idx >= 0) {
+      tasks[idx] = { ...tasks[idx], title, dueDate, dueTime, priority, repeat, repeatConfig: { days }, notes, pinnedToShelf, reminder };
+    }
+  } else {
+    tasks.push({
+      id: generateId(),
+      title, dueDate, dueTime, priority, repeat,
+      repeatConfig: { days },
+      notes, pinnedToShelf, reminder,
+      createdAt: formatDateStr(new Date()),
+      completedDates: []
+    });
+  }
+
+  saveTasks(tasks);
+  closeTaskModal();
+  renderView();
+});
+
+document.getElementById('taskDeleteBtn').addEventListener('click', () => {
+  if (!editingTaskId) return;
+  if (confirm('Bu görevi silmek istediğinize emin misiniz?')) {
+    const tasks = getTasks().filter(t => t.id !== editingTaskId);
+    saveTasks(tasks);
+    closeTaskModal();
+    renderView();
+  }
+});
+
+document.getElementById('taskModalOverlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('taskModalOverlay')) closeTaskModal();
+});
+
+/* ========== EVENT MODAL ========== */
+function openEventModal(eventId, dateStr, hour) {
+  editingEventId = eventId || null;
+  editingEventDate = dateStr || formatDateStr(currentDate);
+  const overlay = document.getElementById('eventModalOverlay');
+  const titleEl = document.getElementById('eventModalTitle');
+  const deleteBtn = document.getElementById('eventDeleteBtn');
+
+  // Reset color dots
+  document.querySelectorAll('#eventColorDots .color-dot').forEach(d => d.classList.remove('selected'));
+  document.querySelector('#eventColorDots .color-dot[data-color="#4a9eff"]').classList.add('selected');
+
+  if (editingEventId) {
+    titleEl.textContent = 'Etkinliği Düzenle';
+    deleteBtn.style.display = 'block';
+    const events = getEvents();
+    const dateEvents = events[editingEventDate] || [];
+    const ev = dateEvents.find(e => e.id === editingEventId);
+    if (ev) {
+      document.getElementById('eventTitle').value = ev.title;
+      document.getElementById('eventDate').value = editingEventDate;
+      document.getElementById('eventAllDay').checked = ev.allDay || false;
+      document.getElementById('eventStart').value = ev.start || '';
+      document.getElementById('eventEnd').value = ev.end || '';
+      document.getElementById('eventPriority').value = ev.priority || 'none';
+      document.getElementById('eventNotes').value = ev.notes || '';
+      document.getElementById('eventReminder').value = ev.reminder || 'none';
+      document.getElementById('eventTimeRow').style.display = ev.allDay ? 'none' : 'flex';
+
+      // Color
+      const color = ev.color || '#4a9eff';
+      document.querySelectorAll('#eventColorDots .color-dot').forEach(d => {
+        d.classList.toggle('selected', d.dataset.color === color);
+      });
+    }
+  } else {
+    titleEl.textContent = 'Yeni Etkinlik';
+    deleteBtn.style.display = 'none';
+    document.getElementById('eventTitle').value = '';
+    document.getElementById('eventDate').value = editingEventDate;
+    document.getElementById('eventAllDay').checked = false;
+    document.getElementById('eventStart').value = hour ? String(hour).padStart(2, '0') + ':00' : '';
+    document.getElementById('eventEnd').value = hour ? String(parseInt(hour) + 1).padStart(2, '0') + ':00' : '';
+    document.getElementById('eventPriority').value = 'none';
+    document.getElementById('eventNotes').value = '';
+    document.getElementById('eventTimeRow').style.display = 'flex';
+    document.getElementById('eventReminder').value = getSettings().defaultEventReminder || '10min';
+  }
+
+  overlay.classList.add('active');
+  document.getElementById('eventTitle').focus();
+}
+
+function closeEventModal() {
+  document.getElementById('eventModalOverlay').classList.remove('active');
+  editingEventId = null;
+  editingEventDate = null;
+}
+
+document.getElementById('eventAllDay').addEventListener('change', (e) => {
+  document.getElementById('eventTimeRow').style.display = e.target.checked ? 'none' : 'flex';
+});
+
+document.querySelectorAll('#eventColorDots .color-dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    document.querySelectorAll('#eventColorDots .color-dot').forEach(d => d.classList.remove('selected'));
+    dot.classList.add('selected');
+  });
+});
+
+document.getElementById('eventCancelBtn').addEventListener('click', closeEventModal);
+
+document.getElementById('eventSaveBtn').addEventListener('click', () => {
+  const title = document.getElementById('eventTitle').value.trim();
+  if (!title) { document.getElementById('eventTitle').focus(); return; }
+
+  const dateStr = document.getElementById('eventDate').value;
+  const allDay = document.getElementById('eventAllDay').checked;
+  const start = document.getElementById('eventStart').value;
+  const end = document.getElementById('eventEnd').value;
+  const priority = document.getElementById('eventPriority').value;
+  const notes = document.getElementById('eventNotes').value;
+  const reminder = document.getElementById('eventReminder').value;
+  const colorDot = document.querySelector('#eventColorDots .color-dot.selected');
+  const color = colorDot ? colorDot.dataset.color : '#4a9eff';
+
+  const events = getEvents();
+
+  if (editingEventId) {
+    if (events[editingEventDate]) {
+      events[editingEventDate] = events[editingEventDate].filter(e => e.id !== editingEventId);
+      if (events[editingEventDate].length === 0) delete events[editingEventDate];
+    }
+    if (!events[dateStr]) events[dateStr] = [];
+    events[dateStr].push({ id: editingEventId, title, start, end, allDay, color, priority, notes, reminder });
+  } else {
+    if (!events[dateStr]) events[dateStr] = [];
+    events[dateStr].push({ id: generateId(), title, start, end, allDay, color, priority, notes, reminder });
+  }
+
+  saveEvents(events);
+  closeEventModal();
+  renderView();
+});
+
+document.getElementById('eventDeleteBtn').addEventListener('click', () => {
+  if (!editingEventId || !editingEventDate) return;
+  if (confirm('Bu etkinliği silmek istediğinize emin misiniz?')) {
+    const events = getEvents();
+    if (events[editingEventDate]) {
+      events[editingEventDate] = events[editingEventDate].filter(e => e.id !== editingEventId);
+      if (events[editingEventDate].length === 0) delete events[editingEventDate];
+    }
+    saveEvents(events);
+    closeEventModal();
+    renderView();
+  }
+});
+
+document.getElementById('eventModalOverlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('eventModalOverlay')) closeEventModal();
+});
+
+/* ========== KEYBOARD ========== */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeTaskModal();
+    closeEventModal();
+  }
+});
+
+/* ========== MOBILE COLLAPSE ========== */
+function toggleMobileSection(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.mobile-chevron');
+  body.classList.toggle('collapsed-mobile');
+  chevron.classList.toggle('open');
+}
+
+/* ========== BİLDİRİMLER ========== */
+async function requestNotificationPermission() {
+  const statusEl = document.getElementById('notifStatus');
+  if (!('Notification' in window)) {
+    if (statusEl) statusEl.textContent = 'Bu tarayıcı bildirimleri desteklemiyor.';
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  if (permission === 'granted') {
+    if (statusEl) statusEl.textContent = '✓ Bildirimler aktif';
+    scheduleTaskNotifications();
+    scheduleEventNotifications();
+    scheduleBirthdayNotifications();
+  } else {
+    if (statusEl) statusEl.textContent = '✗ Bildirim izni reddedildi';
+  }
+}
+
+// Reminder değerinden ms cinsinden ne kadar önce bildirim gönderileceğini hesapla
+function getReminderTime(reminder, dueDate, dueTime) {
+  const now = new Date();
+  let notifTime = null;
+
+  if (!dueDate) return null;
+
+  const baseDate = new Date(dueDate + 'T00:00:00');
+
+  switch(reminder) {
+    case 'at_time':
+      if (!dueTime) return null;
+      notifTime = new Date(dueDate + 'T' + dueTime);
+      break;
+    case '5min':
+      if (!dueTime) return null;
+      notifTime = new Date(dueDate + 'T' + dueTime);
+      notifTime.setMinutes(notifTime.getMinutes() - 5);
+      break;
+    case '10min':
+      if (!dueTime) return null;
+      notifTime = new Date(dueDate + 'T' + dueTime);
+      notifTime.setMinutes(notifTime.getMinutes() - 10);
+      break;
+    case '30min':
+      if (!dueTime) return null;
+      notifTime = new Date(dueDate + 'T' + dueTime);
+      notifTime.setMinutes(notifTime.getMinutes() - 30);
+      break;
+    case '1hour':
+      if (!dueTime) return null;
+      notifTime = new Date(dueDate + 'T' + dueTime);
+      notifTime.setHours(notifTime.getHours() - 1);
+      break;
+    case 'day_9am':
+      notifTime = new Date(dueDate + 'T09:00:00');
+      break;
+    case '1day_9am':
+      notifTime = new Date(dueDate + 'T09:00:00');
+      notifTime.setDate(notifTime.getDate() - 1);
+      break;
+    case '1week_9am':
+      notifTime = new Date(dueDate + 'T09:00:00');
+      notifTime.setDate(notifTime.getDate() - 7);
+      break;
+    default:
+      return null;
+  }
+
+  if (!notifTime) return null;
+  const diff = notifTime - now;
+  return diff > 0 && diff < 7 * 24 * 60 * 60 * 1000 ? diff : null;
+}
+
+function sendNotification(title, body) {
+  if (Notification.permission !== 'granted') return;
+  new Notification(title, {
+    body,
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    vibrate: [200, 100, 200]
+  });
+}
+
+// Aktif setTimeout id'lerini takip et (tekrar planlamayı önlemek için)
+const scheduledNotifs = new Set();
+
+function scheduleTaskNotifications() {
+  if (Notification.permission !== 'granted') return;
+  const tasks = getTasks();
+  const todayStr = formatDateStr(new Date());
+
+  tasks.forEach(task => {
+    if (!task.reminder || task.reminder === 'none') return;
+    const taskDate = task.dueDate || todayStr;
+    const notifKey = `task_${task.id}_${task.reminder}`;
+    if (scheduledNotifs.has(notifKey)) return;
+
+    const diff = getReminderTime(task.reminder, taskDate, task.dueTime);
+    if (diff === null) return;
+
+    scheduledNotifs.add(notifKey);
+    setTimeout(() => {
+      if (!task.completedDates || !task.completedDates.includes(taskDate)) {
+        sendNotification('Plano — Görev Hatırlatıcı', `"${task.title}"${task.dueTime ? ' · ' + task.dueTime : ''}`);
+      }
+      scheduledNotifs.delete(notifKey);
+    }, diff);
+  });
+}
+
+function scheduleEventNotifications() {
+  if (Notification.permission !== 'granted') return;
+  const events = getEvents();
+
+  Object.entries(events).forEach(([dateStr, dayEvents]) => {
+    dayEvents.forEach(ev => {
+      if (!ev.reminder || ev.reminder === 'none') return;
+      const notifKey = `event_${ev.id}_${ev.reminder}`;
+      if (scheduledNotifs.has(notifKey)) return;
+
+      const diff = getReminderTime(ev.reminder, dateStr, ev.start);
+      if (diff === null) return;
+
+      scheduledNotifs.add(notifKey);
+      setTimeout(() => {
+        sendNotification('Plano — Etkinlik Hatırlatıcı', `"${ev.title}"${ev.start ? ' · ' + ev.start : ''}`);
+        scheduledNotifs.delete(notifKey);
+      }, diff);
+    });
+  });
+}
+
+function scheduleBirthdayNotifications() {
+  if (Notification.permission !== 'granted') return;
+  const birthdays = getBirthdays();
+  const now = new Date();
+  const year = now.getFullYear();
+
+  birthdays.forEach(b => {
+    if (!b.reminder || b.reminder === 'none') return;
+    const [month, day] = b.monthDay.split('-');
+    // Bu yılki doğum günü
+    let bdayDate = new Date(year, parseInt(month)-1, parseInt(day));
+    // Geçtiyse gelecek yıla bak
+    if (bdayDate < now) bdayDate = new Date(year+1, parseInt(month)-1, parseInt(day));
+
+    const bdayStr = formatDateStr(bdayDate);
+    const notifKey = `birthday_${b.id}_${b.reminder}_${bdayStr}`;
+    if (scheduledNotifs.has(notifKey)) return;
+
+    const diff = getReminderTime(b.reminder, bdayStr, null);
+    if (diff === null) return;
+
+    const age = b.birthYear ? (bdayDate.getFullYear() - parseInt(b.birthYear)) : null;
+    const ageStr = age ? ` (${age} yaşında)` : '';
+
+    scheduledNotifs.add(notifKey);
+    setTimeout(() => {
+      sendNotification('🎂 Doğum Günü', `${b.name}'nın doğum günü!${ageStr}`);
+      scheduledNotifs.delete(notifKey);
+    }, diff);
+  });
+}
+
+function scheduleDailySummary() {
+  if (Notification.permission !== 'granted') return;
+  const settings = getSettings();
+  if (!settings.dailySummaryEnabled || !settings.dailySummaryTime) return;
+
+  const [h, m] = settings.dailySummaryTime.split(':').map(Number);
+  const now = new Date();
+  const summaryTime = new Date();
+  summaryTime.setHours(h, m, 0, 0);
+
+  // Eğer bugün geçtiyse yarın planla
+  if (summaryTime <= now) summaryTime.setDate(summaryTime.getDate() + 1);
+  const diff = summaryTime - now;
+
+  setTimeout(() => {
+    const todayStr = formatDateStr(new Date());
+    const tasks = getTasks();
+    const highPrio = tasks.filter(t =>
+      t.priority === 'high' &&
+      (t.dueDate === todayStr || !t.dueDate) &&
+      !t.completedDates?.includes(todayStr)
+    );
+    if (highPrio.length > 0) {
+      sendNotification('Plano — Günlük Özet', `Bugün ${highPrio.length} önemli görev var: ${highPrio.slice(0,3).map(t=>t.title).join(', ')}${highPrio.length>3?'...':''}`);
+    }
+    scheduleDailySummary(); // Ertesi gün için yeniden planla
+  }, diff);
+}
+
+function updateNotifStatus() {
+  const statusEl = document.getElementById('notifStatus');
+  if (!statusEl) return;
+  if (!('Notification' in window)) {
+    statusEl.textContent = 'Bu tarayıcı bildirimleri desteklemiyor.';
+  } else if (Notification.permission === 'granted') {
+    statusEl.textContent = '✓ Bildirimler aktif';
+  } else if (Notification.permission === 'denied') {
+    statusEl.textContent = '✗ Bildirim izni reddedildi (tarayıcı ayarlarından açın)';
+  } else {
+    statusEl.textContent = 'Bildirimler henüz aktif değil.';
+  }
+}
+
+/* ========== CONTEXT MENU ========== */
+let ctxMenu = null;
+function closeCtxMenu() {
+  if (ctxMenu) { ctxMenu.remove(); ctxMenu = null; }
+}
+document.addEventListener('click', closeCtxMenu);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCtxMenu(); });
+
+function showCtxMenu(x, y, items) {
+  closeCtxMenu();
+  ctxMenu = document.createElement('div');
+  ctxMenu.className = 'ctx-menu';
+  items.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'ctx-menu-item' + (item.danger ? ' danger' : '');
+    el.innerHTML = `<span>${item.icon}</span><span>${item.label}</span>`;
+    el.addEventListener('click', (e) => { e.stopPropagation(); closeCtxMenu(); item.action(); });
+    ctxMenu.appendChild(el);
+  });
+  // Ekran sınırı
+  const vw = window.innerWidth, vh = window.innerHeight;
+  let left = x, top = y;
+  ctxMenu.style.visibility = 'hidden';
+  document.body.appendChild(ctxMenu);
+  const rect = ctxMenu.getBoundingClientRect();
+  if (left + rect.width > vw - 8) left = vw - rect.width - 8;
+  if (top + rect.height > vh - 8) top = vh - rect.height - 8;
+  ctxMenu.style.left = left + 'px';
+  ctxMenu.style.top = top + 'px';
+  ctxMenu.style.visibility = 'visible';
+}
+
+/* ========== DUPLICATE ========== */
+function duplicateTask(taskId, fromDate) {
+  const tasks = getTasks();
+  const orig = tasks.find(t => t.id === taskId);
+  if (!orig) return;
+  const copy = JSON.parse(JSON.stringify(orig));
+  copy.id = generateId();
+  copy.title = orig.title;
+  copy.completedDates = [];
+  copy.createdAt = formatDateStr(new Date());
+  if (fromDate) copy.dueDate = fromDate;
+  tasks.push(copy);
+  saveTasks(tasks);
+  renderView();
+}
+
+function duplicateEvent(eventId, fromDate) {
+  const events = getEvents();
+  const dayEvs = events[fromDate] || [];
+  const orig = dayEvs.find(e => e.id === eventId);
+  if (!orig) return;
+  const copy = JSON.parse(JSON.stringify(orig));
+  copy.id = generateId();
+  copy.title = orig.title;
+  if (!events[fromDate]) events[fromDate] = [];
+  events[fromDate].push(copy);
+  saveEvents(events);
+  renderView();
+}
+
+/* ========== DRAG & DROP STATE ========== */
+let dragState = null; // { type: 'task'|'event', id, fromDate, elem }
+
+/* ========== BIND CONTEXT MENU + DRAG ON DAILY ========== */
+function bindDragAndContextMenu() {
+  // TASK CARDS
+  document.querySelectorAll('.pcard[data-task-id]').forEach(card => {
+    const taskId = card.dataset.taskId;
+    const dateStr = card.dataset.date;
+
+    // Sağ tık — context menu
+    card.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showCtxMenu(e.clientX, e.clientY, [
+        { icon: '⧉', label: 'Çoğalt', action: () => duplicateTask(taskId, dateStr) },
+        { icon: '✏️', label: 'Düzenle', action: () => openTaskModal(taskId) },
+      ]);
+    });
+
+    // Drag başlat
+    card.addEventListener('dragstart', (e) => {
+      dragState = { type: 'task', id: taskId, fromDate: dateStr };
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', taskId);
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+  });
+
+  // TASK LIST drop zones (günlük)
+  document.querySelectorAll('.task-list[data-drop-date]').forEach(list => {
+    const toDate = list.dataset.dropDate;
+    list.addEventListener('dragover', (e) => {
+      if (!dragState || dragState.type !== 'task') return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      list.classList.add('drag-over');
+    });
+    list.addEventListener('dragleave', (e) => {
+      if (!list.contains(e.relatedTarget)) list.classList.remove('drag-over');
+    });
+    list.addEventListener('drop', (e) => {
+      e.preventDefault();
+      list.classList.remove('drag-over');
+      if (!dragState || dragState.type !== 'task') return;
+      moveTask(dragState.id, dragState.fromDate, toDate);
+      dragState = null;
+    });
+  });
+
+  // DAILY EVENT CARDS (günlük paneldeki etkinlik kartları)
+  document.querySelectorAll('.pcard[data-event-id]').forEach(card => {
+    const eventId = card.dataset.eventId;
+    const dateStr = card.dataset.date;
+
+    card.addEventListener('contextmenu', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      showCtxMenu(e.clientX, e.clientY, [
+        { icon: '⧉', label: 'Çoğalt', action: () => duplicateEvent(eventId, dateStr) },
+        { icon: '✏️', label: 'Düzenle', action: () => openEventModal(eventId, dateStr) },
+      ]);
+    });
+    card.addEventListener('dragstart', (e) => {
+      dragState = { type: 'event', id: eventId, fromDate: dateStr };
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+  });
+
+  // EVENT LIST drop zones (günlük)
+  document.querySelectorAll('.event-list[data-drop-date-event]').forEach(list => {
+    const toDate = list.dataset.dropDateEvent;
+    list.addEventListener('dragover', (e) => {
+      if (!dragState || dragState.type !== 'event') return;
+      e.preventDefault();
+      list.classList.add('drag-over');
+    });
+    list.addEventListener('dragleave', (e) => {
+      if (!list.contains(e.relatedTarget)) list.classList.remove('drag-over');
+    });
+    list.addEventListener('drop', (e) => {
+      e.preventDefault();
+      list.classList.remove('drag-over');
+      if (!dragState || dragState.type !== 'event') return;
+      moveEvent(dragState.id, dragState.fromDate, toDate);
+      dragState = null;
+    });
+  });
+
+  // WEEKLY EVENT CARDS
+  document.querySelectorAll('.weekly-event[data-event-id]').forEach(evEl => {
+    const eventId = evEl.dataset.eventId;
+    const dateStr = evEl.dataset.date;
+    evEl.style.cursor = 'grab';
+    evEl.setAttribute('draggable', 'true');
+
+    evEl.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showCtxMenu(e.clientX, e.clientY, [
+        { icon: '⧉', label: 'Çoğalt', action: () => duplicateEvent(eventId, dateStr) },
+        { icon: '✏️', label: 'Düzenle', action: () => openEventModal(eventId, dateStr) },
+      ]);
+    });
+
+    evEl.addEventListener('dragstart', (e) => {
+      dragState = { type: 'event', id: eventId, fromDate: dateStr };
+      evEl.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.stopPropagation();
+    });
+    evEl.addEventListener('dragend', () => {
+      evEl.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+  });
+
+  // WEEKLY TASK CARDS
+  document.querySelectorAll('.weekly-event[data-task-id]').forEach(evEl => {
+    const taskId = evEl.dataset.taskId;
+    const dateStr = evEl.dataset.date;
+    evEl.setAttribute('draggable', 'true');
+
+    evEl.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showCtxMenu(e.clientX, e.clientY, [
+        { icon: '⧉', label: 'Çoğalt', action: () => duplicateTask(taskId, dateStr) },
+        { icon: '✏️', label: 'Düzenle', action: () => openTaskModal(taskId) },
+      ]);
+    });
+
+    evEl.addEventListener('dragstart', (e) => {
+      dragState = { type: 'task', id: taskId, fromDate: dateStr };
+      evEl.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.stopPropagation();
+    });
+    evEl.addEventListener('dragend', () => {
+      evEl.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+  });
+
+  // WEEKLY DAY COLUMNS drop zones — Y pozisyonundan saat hesapla
+  document.querySelectorAll('.weekly-day-col[data-date]').forEach(col => {
+    const toDate = col.dataset.date;
+
+    // Drop indicator çizgisi
+    let dropLine = null;
+
+    function getHourFromY(e) {
+      const rect = col.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const slotHeight = 56; // her saat 56px
+      const startHour = 7;
+      let hour = Math.floor(y / slotHeight) + startHour;
+      let mins = Math.round((y % slotHeight) / slotHeight * 60 / 15) * 15;
+      if (mins >= 60) { mins = 0; hour++; }
+      hour = Math.max(7, Math.min(23, hour));
+      return `${String(hour).padStart(2,'0')}:${String(mins).padStart(2,'0')}`;
+    }
+
+    col.addEventListener('dragover', (e) => {
+      if (!dragState) return;
+      e.preventDefault();
+      col.classList.add('drag-over');
+      // Indicator çizgisi göster
+      if (!dropLine) {
+        dropLine = document.createElement('div');
+        dropLine.style.cssText = 'position:absolute;left:0;right:0;height:2px;background:var(--accent);z-index:20;pointer-events:none;';
+        col.style.position = 'relative';
+        col.appendChild(dropLine);
+      }
+      const rect = col.getBoundingClientRect();
+      dropLine.style.top = (e.clientY - rect.top) + 'px';
+    });
+    col.addEventListener('dragleave', (e) => {
+      if (!col.contains(e.relatedTarget)) {
+        col.classList.remove('drag-over');
+        if (dropLine) { dropLine.remove(); dropLine = null; }
+      }
+    });
+    col.addEventListener('drop', (e) => {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      if (dropLine) { dropLine.remove(); dropLine = null; }
+      if (!dragState) return;
+      const newTime = getHourFromY(e);
+      if (dragState.type === 'task') moveTask(dragState.id, dragState.fromDate, toDate, newTime);
+      else if (dragState.type === 'event') moveEvent(dragState.id, dragState.fromDate, toDate, newTime);
+      dragState = null;
+    });
+  });
+
+  // MONTHLY CELLS context menu + drop
+  document.querySelectorAll('.monthly-task-preview[data-task-id]').forEach(el => {
+    el.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const taskId = el.dataset.taskId;
+      const dateStr = el.dataset.date;
+      showCtxMenu(e.clientX, e.clientY, [
+        { icon: '⧉', label: 'Çoğalt', action: () => duplicateTask(taskId, dateStr) },
+        { icon: '✏️', label: 'Düzenle', action: () => openTaskModal(taskId) },
+      ]);
+    });
+    el.setAttribute('draggable', 'true');
+    el.addEventListener('dragstart', (e) => {
+      dragState = { type: 'task', id: el.dataset.taskId, fromDate: el.dataset.date };
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.stopPropagation();
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(x => x.classList.remove('drag-over'));
+    });
+  });
+
+  document.querySelectorAll('.monthly-task-preview[data-event-id]').forEach(el => {
+    el.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const eventId = el.dataset.eventId;
+      const dateStr = el.dataset.date;
+      showCtxMenu(e.clientX, e.clientY, [
+        { icon: '⧉', label: 'Çoğalt', action: () => duplicateEvent(eventId, dateStr) },
+        { icon: '✏️', label: 'Düzenle', action: () => openEventModal(eventId, dateStr) },
+      ]);
+    });
+    el.setAttribute('draggable', 'true');
+    el.addEventListener('dragstart', (e) => {
+      dragState = { type: 'event', id: el.dataset.eventId, fromDate: el.dataset.date };
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.stopPropagation();
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(x => x.classList.remove('drag-over'));
+    });
+  });
+
+  document.querySelectorAll('.monthly-cell[data-date]').forEach(cell => {
+    const toDate = cell.dataset.date;
+    cell.addEventListener('dragover', (e) => {
+      if (!dragState) return;
+      e.preventDefault();
+      cell.classList.add('drag-over');
+    });
+    cell.addEventListener('dragleave', (e) => {
+      if (!cell.contains(e.relatedTarget)) cell.classList.remove('drag-over');
+    });
+    cell.addEventListener('drop', (e) => {
+      e.preventDefault();
+      cell.classList.remove('drag-over');
+      if (!dragState) return;
+      if (dragState.type === 'task') moveTask(dragState.id, dragState.fromDate, toDate);
+      else if (dragState.type === 'event') moveEvent(dragState.id, dragState.fromDate, toDate);
+      dragState = null;
+    });
+  });
+}
+
+/* ========== MOVE TASK ========== */
+function moveTask(taskId, fromDate, toDate, newTime) {
+  const tasks = getTasks();
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  // Tekrarlayan görevlerde sadece bu tarih için kopya oluştur
+  if (task.repeat && task.repeat !== 'none') {
+    const copy = JSON.parse(JSON.stringify(task));
+    copy.id = generateId();
+    copy.repeat = 'none';
+    copy.repeatConfig = { days: [] };
+    copy.dueDate = toDate;
+    copy.completedDates = [];
+    if (newTime) copy.dueTime = newTime;
+    if (!task.skipDates) task.skipDates = [];
+    task.skipDates.push(fromDate);
+    tasks.push(copy);
+  } else {
+    task.dueDate = toDate;
+    if (newTime) task.dueTime = newTime;
+  }
+  saveTasks(tasks);
+  renderView();
+}
+
+/* ========== MOVE EVENT ========== */
+function moveEvent(eventId, fromDate, toDate, newTime) {
+  const events = getEvents();
+  const fromEvs = events[fromDate] || [];
+  const idx = fromEvs.findIndex(e => e.id === eventId);
+  if (idx < 0) return;
+  const ev = fromEvs.splice(idx, 1)[0];
+  if (fromEvs.length === 0) delete events[fromDate];
+  else events[fromDate] = fromEvs;
+  // Saat güncelle (haftalık drag)
+  if (newTime && !ev.allDay) {
+    // Süreyi koru
+    const oldStartMins = ev.start ? timeToMins(ev.start) : 0;
+    const oldEndMins = ev.end ? timeToMins(ev.end) : 0;
+    const duration = oldEndMins - oldStartMins;
+    ev.start = newTime;
+    if (duration > 0) {
+      const newStartMins = timeToMins(newTime);
+      const newEndMins = newStartMins + duration;
+      const endH = Math.floor(newEndMins / 60);
+      const endM = newEndMins % 60;
+      ev.end = `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
+    }
+  }
+  if (!events[toDate]) events[toDate] = [];
+  events[toDate].push(ev);
+  saveEvents(events);
+  renderView();
+}
+
+/* ========== SERVICE WORKER ========== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW error:', err));
+  });
+}
+
+/* ========== INIT ========== */
+function init() {
+  initSettings();
+  initSidebar();
+  renderView();
+  // Arka planda buluttan sync et
+  syncFromCloud();
+  // Bildirimler - izin zaten verilmişse planla
+  if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+    scheduleTaskNotifications();
+    scheduleEventNotifications();
+    scheduleBirthdayNotifications();
+    scheduleDailySummary();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
