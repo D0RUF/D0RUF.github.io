@@ -424,7 +424,7 @@ body {
 }
 
 /* ===== SETTINGS VIEW ===== */
-#settings-view { display: none; height: 100%; }
+#settings-view { display: none; height: 100%; overflow-y: auto; }
 #settings-view.active { display: flex; flex-direction: column; }
 #birthdays-view { display: none; height: 100%; }
 #birthdays-view.active { display: flex; flex-direction: column; }
@@ -580,11 +580,17 @@ body {
   .mobile-collapse-body { padding: 0; }
 }
 
-.daily-rsidebar {
+#daily-view {
+    flex-direction: column !important;
+  }
+  #daily-panels {
+    flex: 1; overflow-y: auto; min-height: 0;
+  }
+  .daily-rsidebar {
     width: 100%; min-width: 100%;
-    border-left: none; border-top: none;
-    flex-direction: column; padding: 0 10px 10px;
-    gap: 0;
+    border-left: none; border-top: 1px solid var(--border);
+    flex-direction: column; padding: 8px 10px 10px;
+    gap: 0; flex-shrink: 0;
   }
 
   /* Mini cal, upcoming, stats — açılır kapanır wrapper */
@@ -611,7 +617,8 @@ body {
   }
 
   /* Haftalık - saat kolonu küçült, scroll */
-  #weekly-view { height: calc(100vh - 120px); display: flex; flex-direction: column; }
+  #weekly-view { height: calc(100vh - 120px); flex-direction: column; }
+  #weekly-view.active { display: flex; }
   .weekly-header { flex-shrink: 0; }
   .weekly-grid-wrapper { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
   .weekly-corner { width: 44px; min-width: 44px; }
@@ -627,7 +634,8 @@ body {
   .weekly-event { font-size: 9px; padding: 2px 4px; left: 1px; right: 1px; }
 
   /* Aylık - kompakt ama okunabilir */
-  #monthly-view { height: calc(100vh - 120px); }
+  #monthly-view { height: calc(100vh - 120px); flex-direction: column; }
+  #monthly-view.active { display: flex; }
   .monthly-cell { min-height: 60px; padding: 4px 3px; }
   .monthly-cell-num { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
   .monthly-day-header { padding: 6px 2px; font-size: 9px; }
