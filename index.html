@@ -315,6 +315,11 @@ body {
   content: ''; display: block; width: 3px; height: 3px;
   background: var(--accent); border-radius: 50%; margin: 1px auto 0;
 }
+.mini-cal-day.has-birthday { position: relative; }
+.mini-cal-day.has-birthday::before {
+  content: ''; position: absolute; top: 1px; right: 1px;
+  width: 4px; height: 4px; background: #e91e8c; border-radius: 50%;
+}
 .mini-cal-day.holiday-day { color: var(--amber); }
 
 /* Upcoming */
@@ -399,28 +404,31 @@ body {
   border-bottom: 1px solid var(--border);
 }
 .monthly-day-header {
-  padding: 8px; text-align: center; font-family: var(--font-mono);
-  font-size: 10px; color: var(--text3); text-transform: uppercase;
+  padding: 6px 2px; text-align: center; font-family: var(--font-mono);
+  font-size: 9px; color: var(--text3); text-transform: uppercase;
+  box-sizing: border-box;
 }
 .monthly-grid {
-  display: grid; grid-template-columns: repeat(7, 1fr);
-  flex: 1; overflow-y: auto;
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
+  flex: 1; overflow-y: auto; min-width: 0;
 }
 .monthly-cell {
   border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
-  padding: 6px 8px; min-height: 90px; cursor: pointer; transition: background 0.1s;
+  padding: 4px; min-height: 90px; cursor: pointer; transition: background 0.1s;
+  min-width: 0; overflow: hidden; box-sizing: border-box;
 }
 .monthly-cell:nth-child(7n) { border-right: none; }
 .monthly-cell:hover { background: var(--bg3); }
 .monthly-cell.other-month { opacity: 0.3; }
 .monthly-cell.today { background: rgba(74,158,255,0.06); }
-.monthly-cell-num { font-size: 12px; font-weight: 500; color: var(--text1); margin-bottom: 4px; }
+.monthly-cell-num { font-size: 11px; font-weight: 600; color: var(--text1); margin-bottom: 2px; line-height: 1.2; }
 .monthly-cell.today .monthly-cell-num { color: var(--accent); font-weight: 700; }
 .monthly-cell-holiday { font-size: 9px; color: var(--amber); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .monthly-task-preview {
-  font-size: 11px; color: var(--text2); padding: 1px 0 1px 6px;
+  font-size: 10px; color: var(--text2); padding: 1px 0 1px 4px;
   border-left: 2px solid #555; margin-bottom: 1px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%; display: block;
 }
 
 /* ===== SETTINGS VIEW ===== */
@@ -1686,8 +1694,9 @@ function renderMiniCal() {
     if (isSelected && !isToday) cls += ' selected';
     if (holiday && !isToday) cls += ' holiday-day';
     if (hasTasks && !isToday) cls += ' has-tasks';
+    if (hasBirthday) cls += ' has-birthday';
 
-    html += `<div class="${cls}" data-date="${ds}">${d.getDate()}</div>`;
+    html += `<div class="${cls}" data-date="${ds}" title="${hasBirthday ? '🎂' : ''}">${d.getDate()}</div>`;
   }
   html += `</div>`;
 
@@ -1739,6 +1748,15 @@ function renderUpcoming() {
     const events = getEventsForDate(ds);
     events.forEach(ev => {
       upcomingEvents.push({ label: dayLabel + (ev.allDay ? '' : ' · ' + ev.start), title: ev.title, color: ev.color || 'var(--accent)' });
+    });
+
+    // Doğum günleri
+    const bdays = getBirthdaysForDate(ds);
+    bdays.forEach(b => {
+      const thisYear = d.getFullYear();
+      const age = b.birthYear ? (thisYear - parseInt(b.birthYear)) : null;
+      const ageStr = age ? ` (${age} yaş)` : '';
+      upcomingEvents.push({ label: dayLabel, title: '🎂 ' + b.name + ageStr, color: '#e91e8c' });
     });
   }
 
@@ -1981,12 +1999,16 @@ function renderMonthly() {
     let cls = 'monthly-cell';
     if (isOther) cls += ' other-month';
     if (isToday) cls += ' today';
-    if (tasks.length > 0 || events.length > 0) cls += ' has-tasks-mobile';
+    const bdaysForDate_check = getBirthdaysForDate(ds);
+    if (tasks.length > 0 || events.length > 0 || bdaysForDate_check.length > 0) cls += ' has-tasks-mobile';
 
     let html = `<div class="monthly-cell-num">${d.getDate()}</div>`;
     if (holiday) html += `<div class="monthly-cell-holiday">${escapeHtml(holiday)}</div>`;
 
-    // Görevler ve etkinlikleri birleştir, max 3 göster
+    // Doğum günlerini de al
+    const bdaysForDate = getBirthdaysForDate(ds);
+
+    // Görevler, etkinlikler ve doğum günlerini birleştir, max 3 göster
     const allItems = [
       ...tasks.map(t => ({
         title: t.title,
@@ -1997,6 +2019,11 @@ function renderMonthly() {
         title: (ev.allDay ? '● ' : (ev.start ? ev.start + ' ' : '')) + ev.title,
         color: ev.color || 'var(--accent)',
         eventId: ev.id, dateStr: ds
+      })),
+      ...bdaysForDate.map(b => ({
+        title: '🎂 ' + b.name,
+        color: '#e91e8c',
+        isBirthday: true, dateStr: ds
       }))
     ];
 
