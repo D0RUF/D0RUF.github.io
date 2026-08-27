@@ -1532,6 +1532,20 @@ function renderDaily() {
       html += `</div>`;
     }
 
+    // Doğum günleri
+    const dayBdays = getBirthdaysForDate(ds);
+    if (dayBdays.length > 0) {
+      html += `<div class="section-title">🎂 DOĞUM GÜNLERİ</div>`;
+      dayBdays.forEach(b => {
+        const age = b.birthYear ? (p.date.getFullYear() - parseInt(b.birthYear)) : null;
+        const ageStr = age ? ` · ${age} yaşında` : '';
+        html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:var(--text1);border-bottom:1px solid var(--border)">
+          <span style="font-size:18px">🎂</span>
+          <span>${escapeHtml(b.name)}${ageStr}</span>
+        </div>`;
+      });
+    }
+
     // Quick add
     html += `<input class="quick-add-input" data-date="${ds}" placeholder="+ Görev ekle..." />`;
 
@@ -2028,9 +2042,10 @@ function renderMonthly() {
     ];
 
     allItems.slice(0, 3).forEach(item => {
-      const extraAttrs = item.taskId
-        ? `data-task-id="${item.taskId}" data-date="${item.dateStr}"`
-        : `data-event-id="${item.eventId}" data-date="${item.dateStr}"`;
+      let extraAttrs = '';
+      if (item.taskId) extraAttrs = `data-task-id="${item.taskId}" data-date="${item.dateStr}"`;
+      else if (item.eventId) extraAttrs = `data-event-id="${item.eventId}" data-date="${item.dateStr}"`;
+      else if (item.isBirthday) extraAttrs = `data-date="${item.dateStr}"`;
       html += `<div class="monthly-task-preview" style="border-left-color:${item.color}" ${extraAttrs}>${escapeHtml(item.title)}</div>`;
     });
 
