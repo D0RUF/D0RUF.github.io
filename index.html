@@ -1532,6 +1532,17 @@ function renderDaily() {
       html += `</div>`;
     }
 
+    // Doğum günleri
+    const dayBdays = getBirthdaysForDate(ds);
+    if (dayBdays.length > 0) {
+      html += `<div class="section-title">🎂 DOĞUM GÜNLERİ</div>`;
+      dayBdays.forEach(b => {
+        const age = b.birthYear ? (p.date.getFullYear() - parseInt(b.birthYear)) : null;
+        const ageStr = age ? ` · ${age} yaşında` : '';
+        html += `<div style="padding:6px 0;font-size:13px;color:var(--text1);border-bottom:1px solid var(--border)">🎂 ${escapeHtml(b.name)}${ageStr}</div>`;
+      });
+    }
+
     // Quick add
     html += `<input class="quick-add-input" data-date="${ds}" placeholder="+ Görev ekle..." />`;
 
@@ -1687,6 +1698,7 @@ function renderMiniCal() {
     const holiday = getHoliday(ds);
     const tasksForDay = getTasksForDate(ds);
     const hasTasks = tasksForDay.length > 0;
+    const hasBirthday = getBirthdaysForDate(ds).length > 0;
 
     let cls = 'mini-cal-day';
     if (isOther) cls += ' other-month';
@@ -2028,9 +2040,9 @@ function renderMonthly() {
     ];
 
     allItems.slice(0, 3).forEach(item => {
-      const extraAttrs = item.taskId
-        ? `data-task-id="${item.taskId}" data-date="${item.dateStr}"`
-        : `data-event-id="${item.eventId}" data-date="${item.dateStr}"`;
+      let extraAttrs = `data-date="${item.dateStr}"`;
+      if (item.taskId) extraAttrs += ` data-task-id="${item.taskId}"`;
+      else if (item.eventId) extraAttrs += ` data-event-id="${item.eventId}"`;
       html += `<div class="monthly-task-preview" style="border-left-color:${item.color}" ${extraAttrs}>${escapeHtml(item.title)}</div>`;
     });
 
