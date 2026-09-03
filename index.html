@@ -2338,12 +2338,19 @@ function renderSettings() {
   // Test bildirimi
   const testNotifBtn = document.getElementById('testNotifBtn');
   if (testNotifBtn) {
-    testNotifBtn.addEventListener('click', () => {
-      if (Notification.permission !== 'granted') {
-        alert('Önce bildirim iznini etkinleştir!');
+    testNotifBtn.addEventListener('click', async () => {
+      const perm = Notification.permission;
+      const swReg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null;
+      const info = `İzin: ${perm} | SW: ${swReg ? 'var' : 'yok'} | Controller: ${navigator.serviceWorker?.controller ? 'var' : 'yok'}`;
+      console.log('Test bildirim durumu:', info);
+      if (perm !== 'granted') {
+        alert('Bildirim izni yok! İzin: ' + perm);
         return;
       }
-      sendNotification('🔔 Test Bildirimi', 'Plano bildirimleri çalışıyor! ' + new Date().toLocaleTimeString('tr-TR'));
+      await sendNotification('🔔 Test Bildirimi', 'Plano · ' + new Date().toLocaleTimeString('tr-TR'));
+      // Durum göster
+      const statusEl = document.getElementById('pingStatus');
+      if (statusEl) statusEl.textContent = info;
     });
   }
 
@@ -2699,24 +2706,34 @@ function getReminderTime(reminder, dueDate, dueTime) {
   return diff > 0 && diff < 7 * 24 * 60 * 60 * 1000 ? diff : null;
 }
 
-function sendNotification(title, body) {
-  if (Notification.permission !== 'granted') return;
-  // PWA'da Service Worker üzerinden gönder, yoksa direkt
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.ready.then(reg => {
-      reg.showNotification(title, {
-        body,
-        icon: './icon-192.png',
-        badge: './icon-192.png',
-        vibrate: [200, 100, 200]
-      });
-    });
-  } else {
-    new Notification(title, {
-      body,
-      icon: './icon-192.png',
-      badge: './icon-192.png'
-    });
+async function sendNotification(title, body) {
+  if (Notification.permission !== 'granted') {
+    console.log('Bildirim izni yok:', Notification.permission);
+    return;
+  }
+  console.log('Bildirim gönderiliyor:', title, body);
+  try {
+    if ('serviceWorker' in navigator) {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) {
+        await reg.showNotification(title, {
+          body,
+          icon: './icon-192.png',
+          badge: './icon-192.png',
+          vibrate: [200, 100, 200]
+        });
+        console.log('SW bildirimi gönderildi');
+        return;
+      }
+    }
+  } catch(e) {
+    console.log('SW bildirim hatası:', e);
+  }
+  try {
+    new Notification(title, { body, icon: './icon-192.png' });
+    console.log('Direkt bildirim gönderildi');
+  } catch(e) {
+    console.log('Direkt bildirim hatası:', e);
   }
 }
 
